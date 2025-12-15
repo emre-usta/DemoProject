@@ -258,8 +258,35 @@ public class PassengerController : MonoBehaviour
         }
 
         Vector3 targetWaypoint = routeWaypoints[currentWaypointIndex];
-        SetAgentDestination(targetWaypoint);
+        
+        // Validate waypoint is on NavMesh, if not, find nearest point
+        Vector3 validatedWaypoint = ValidateWaypointOnNavMesh(targetWaypoint);
+        SetAgentDestination(validatedWaypoint);
 
+        // Check if path is valid
+        if (!agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
+        {
+            Debug.LogWarning($"{gameObject.name}: Invalid path to waypoint {currentWaypointIndex}. Trying to find alternative.");
+            // Try to find nearest valid point
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(targetWaypoint, out hit, 5f, NavMesh.AllAreas))
+            {
+                SetAgentDestination(hit.position);
+            }
+            else
+            {
+                // Skip this waypoint if we can't find a valid path
+                Debug.LogWarning($"{gameObject.name}: Skipping waypoint {currentWaypointIndex} - cannot find valid NavMesh position.");
+                currentWaypointIndex++;
+                if (currentWaypointIndex >= routeWaypoints.Count)
+                {
+                    SetState(PassengerState.Finished);
+                }
+            }
+            return;
+        }
+
+        // Check if reached waypoint
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + waypointReachDistance)
         {
             // Reached waypoint, move to next
@@ -275,9 +302,22 @@ public class PassengerController : MonoBehaviour
             else
             {
                 // Set next waypoint immediately
-                SetAgentDestination(routeWaypoints[currentWaypointIndex]);
+                Vector3 nextWaypoint = ValidateWaypointOnNavMesh(routeWaypoints[currentWaypointIndex]);
+                SetAgentDestination(nextWaypoint);
             }
         }
+    }
+
+    private Vector3 ValidateWaypointOnNavMesh(Vector3 waypoint)
+    {
+        NavMeshHit hit;
+        // Check if waypoint is on NavMesh, if not find nearest point within 5 units
+        if (NavMesh.SamplePosition(waypoint, out hit, 5f, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+        // If can't find nearby NavMesh, return original (will be handled by path validation)
+        return waypoint;
     }
 
     public void SetState(PassengerState newState)
@@ -430,6 +470,7 @@ public class PassengerController : MonoBehaviour
             if (!agent.isOnNavMesh) return;
         }
         agent.speed = moveSpeed;
+        agent.isStopped = false; // Ensure agent is not stopped
         agent.SetDestination(destination);
     }
 

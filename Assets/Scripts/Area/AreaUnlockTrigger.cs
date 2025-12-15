@@ -8,6 +8,7 @@ public class AreaUnlockTrigger : MonoBehaviour
     public GameObject escalatorObject1;      // Assign escalators GameObject(s)
     public GameObject escalatorObject2;
     public GameObject boardObject;
+    public GameObject truck;
     public int cost = 50;
     public float waitTime = 3f;
     
@@ -114,6 +115,11 @@ public class AreaUnlockTrigger : MonoBehaviour
         {
             boardObject.SetActive(true);
             PlayUnlockAnimation(boardObject);
+        }
+        if (truck != null)
+        {
+            truck.SetActive(true);
+            PlayUnlockAnimation(truck);
         }
         
         Debug.Log("Area unlocked! Part 2 and escalators are now active.");

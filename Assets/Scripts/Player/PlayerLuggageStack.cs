@@ -39,7 +39,7 @@ public class PlayerLuggageStack : MonoBehaviour
         int stackIndex = stackedLuggage.Count;
         Vector3 stackPosition = stackOffset + Vector3.up * (stackIndex * stackSpacing);
         luggage.transform.localPosition = stackPosition;
-        luggage.transform.localRotation = Quaternion.identity;
+        luggage.transform.localRotation = Quaternion.Euler(0, 180f, 90f);
 
         // Add to list
         stackedLuggage.Add(luggage);
@@ -53,6 +53,45 @@ public class PlayerLuggageStack : MonoBehaviour
     public int GetStackCount()
     {
         return stackedLuggage.Count;
+    }
+
+    /// <summary>
+    /// Get all luggage in the stack (returns a copy of the list)
+    /// </summary>
+    public List<GameObject> GetAllLuggage()
+    {
+        return new List<GameObject>(stackedLuggage);
+    }
+
+    /// <summary>
+    /// Remove a specific luggage from the stack
+    /// </summary>
+    public void RemoveLuggage(GameObject luggage)
+    {
+        if (luggage == null || !stackedLuggage.Contains(luggage)) return;
+
+        stackedLuggage.Remove(luggage);
+        luggage.transform.SetParent(null); // Unparent from stack
+
+        // Recalculate positions for remaining luggage
+        RecalculateStackPositions();
+
+        Debug.Log($"Luggage removed from stack. Remaining: {stackedLuggage.Count}");
+    }
+
+    /// <summary>
+    /// Recalculate positions of remaining luggage in stack
+    /// </summary>
+    private void RecalculateStackPositions()
+    {
+        for (int i = 0; i < stackedLuggage.Count; i++)
+        {
+            if (stackedLuggage[i] != null)
+            {
+                Vector3 stackPosition = stackOffset + Vector3.up * (i * stackSpacing);
+                stackedLuggage[i].transform.localPosition = stackPosition;
+            }
+        }
     }
 
     /// <summary>
@@ -70,6 +109,7 @@ public class PlayerLuggageStack : MonoBehaviour
         stackedLuggage.Clear();
     }
 }
+
 
 
 
