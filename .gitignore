@@ -1,0 +1,32 @@
+# OS / IDE
+.DS_Store
+.idea/
+
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Visual Studio / Rider generated
+*.csproj
+*.sln
+*.user
+*.unityproj
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity cache / Addressables
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+# Crash reports
+sysinfo.txt
