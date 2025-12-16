@@ -11,6 +11,7 @@ public class LeverController : MonoBehaviour
     [SerializeField] private Transform leverPlatform; // The platform that lifts (the lever itself)
     [SerializeField] private Transform truckBedTarget; // Where suitcases go on the truck bed (base position)
     [SerializeField] private TruckBedStack truckBedStack; // Reference to truck bed stacking system
+    [SerializeField] private TruckController truckController; // Reference to truck controller
     [SerializeField] private float liftHeight = 2f; // How high the lever lifts
     [SerializeField] private float liftDuration = 1.5f; // Time to lift the lever
     [SerializeField] private float returnDuration = 1f; // Time to return lever to start position
@@ -53,6 +54,12 @@ public class LeverController : MonoBehaviour
                 truckBedStack = truckBedTarget.GetComponentInChildren<TruckBedStack>();
             }
         }
+
+        // Try to find TruckController if not assigned
+        if (truckController == null)
+        {
+            truckController = FindObjectOfType<TruckController>();
+        }
     }
 
     /// <summary>
@@ -93,6 +100,19 @@ public class LeverController : MonoBehaviour
             yield return StartCoroutine(ReturnLeverToStart());
 
             currentSuitcase = null;
+            
+            // Check if we've reached the required number of suitcases to trigger truck
+            if (truckBedStack != null && truckController != null && !truckController.IsMoving())
+            {
+                int currentCount = truckBedStack.GetStackCount();
+                int requiredCount = truckController.GetRequiredSuitcaseCount();
+                
+                if (currentCount >= requiredCount)
+                {
+                    Debug.Log($"LeverController: Reached {currentCount}/{requiredCount} suitcases. Triggering truck delivery.");
+                    truckController.StartDeliverySequence();
+                }
+            }
         }
 
         isProcessing = false;

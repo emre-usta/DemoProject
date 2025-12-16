@@ -9,6 +9,9 @@ public class AreaUnlockTrigger : MonoBehaviour
     public GameObject escalatorObject2;
     public GameObject boardObject;
     public GameObject truck;
+    public GameObject xRay;
+    public GameObject plane;
+    public GameObject xRayZone;
     public int cost = 50;
     public float waitTime = 3f;
     
@@ -120,6 +123,21 @@ public class AreaUnlockTrigger : MonoBehaviour
         {
             truck.SetActive(true);
             PlayUnlockAnimation(truck);
+        }
+        if (xRay != null)
+        {
+            xRay.SetActive(true);
+            PlayUnlockAnimation(xRay);
+        }
+        if (plane != null)
+        {
+            plane.SetActive(true);
+            PlayUnlockAnimation(plane);
+        }
+        if (xRayZone != null)
+        {
+            xRayZone.SetActive(true);
+            PlayUnlockAnimation(xRayZone);
         }
         
         Debug.Log("Area unlocked! Part 2 and escalators are now active.");
