@@ -12,6 +12,7 @@ public class AreaUnlockTrigger : MonoBehaviour
     public GameObject xRay;
     public GameObject plane;
     public GameObject xRayZone;
+    public GameObject banks;
     public int cost = 50;
     public float waitTime = 3f;
     
@@ -138,6 +139,11 @@ public class AreaUnlockTrigger : MonoBehaviour
         {
             xRayZone.SetActive(true);
             PlayUnlockAnimation(xRayZone);
+        }
+        if (banks != null)
+        {
+            banks.SetActive(true);
+            PlayUnlockAnimation(banks);
         }
         
         Debug.Log("Area unlocked! Part 2 and escalators are now active.");

@@ -6,7 +6,7 @@ using UnityEngine;
 public class UpperFloorQueueTrigger : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private UpperFloorQueueManager queueManager;
+    [SerializeField] private PassengerManager passengerManager;
     
     [Header("Settings")]
     [SerializeField] private string playerTag = "Player";
@@ -17,27 +17,27 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     
     private void Start()
     {
-        // Try to find queue manager if not assigned
-        if (queueManager == null)
+        // Try to find PassengerManager if not assigned
+        if (passengerManager == null)
         {
-            queueManager = FindObjectOfType<UpperFloorQueueManager>();
+            passengerManager = FindObjectOfType<PassengerManager>();
         }
         
-        if (queueManager == null)
+        if (passengerManager == null)
         {
-            Debug.LogError("UpperFloorQueueTrigger: No UpperFloorQueueManager found!");
+            Debug.LogError("UpperFloorQueueTrigger: No PassengerManager found!");
         }
     }
     
     private void Update()
     {
         // Continuously process queue while player is in zone
-        if (isPlayerInZone && queueManager != null)
+        if (isPlayerInZone && passengerManager != null)
         {
             if (Time.time - lastCheckTime >= checkInterval)
             {
                 lastCheckTime = Time.time;
-                queueManager.AdvanceQueueIfReady();
+                passengerManager.AdvanceUpperFloorQueueIfReady();
             }
         }
     }
@@ -57,9 +57,9 @@ public class UpperFloorQueueTrigger : MonoBehaviour
         {
             isPlayerInZone = true;
             lastCheckTime = Time.time;
-            if (queueManager != null)
+            if (passengerManager != null)
             {
-                queueManager.SetPlayerInZone(true);
+                passengerManager.SetPlayerInUpperFloorZone(true);
             }
             Debug.Log("UpperFloorQueueTrigger: Player entered trigger zone. Queue will advance continuously.");
         }
@@ -70,13 +70,12 @@ public class UpperFloorQueueTrigger : MonoBehaviour
         if (other.CompareTag(playerTag))
         {
             isPlayerInZone = false;
-            if (queueManager != null)
+            if (passengerManager != null)
             {
-                queueManager.SetPlayerInZone(false);
+                passengerManager.SetPlayerInUpperFloorZone(false);
             }
             Debug.Log("UpperFloorQueueTrigger: Player exited trigger zone. Queue advancement stopped.");
         }
     }
 }
-
 

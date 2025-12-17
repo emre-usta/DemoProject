@@ -78,5 +78,3 @@ public class TruckBedStack : MonoBehaviour
     }
 }
 
-
-
