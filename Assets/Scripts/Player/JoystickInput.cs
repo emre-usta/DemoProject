@@ -3,34 +3,71 @@ using UnityEngine.EventSystems;
 
 public class JoystickInput : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    [Header("UI")]
+    public RectTransform joystickRoot;   // JoystickBg + Handle parent
     public RectTransform handle;
-    public float movementRange = 50f;
+
+    [Header("Settings")]
+    public float movementRange = 80f;
+    [Range(0.2f, 1f)]
+    public float sensitivityExponent = 0.6f;
 
     private Vector2 startPos;
+    private Canvas canvas;
 
-    private void Start()
+    private void Awake()
     {
-        startPos = handle.anchoredPosition;
+        canvas = GetComponentInParent<Canvas>();
+        joystickRoot.gameObject.SetActive(false); // Başta gizli
     }
 
-    public void OnPointerDown(PointerEventData eventData) => OnDrag(eventData);
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        joystickRoot.gameObject.SetActive(true);
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            transform as RectTransform,
+            eventData.position,
+            null,
+            out startPos
+        );
+
+        joystickRoot.localPosition = startPos;
+        handle.anchoredPosition = Vector2.zero;
+
+        OnDrag(eventData);
+    }
+
 
     public void OnDrag(PointerEventData eventData)
     {
-        RectTransform bgRect = (RectTransform)transform;
         Vector2 pointerLocalPos;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(bgRect, eventData.position, eventData.pressEventCamera, out pointerLocalPos))
-        {
-            pointerLocalPos = Vector2.ClampMagnitude(pointerLocalPos, movementRange);
-            handle.anchoredPosition = pointerLocalPos;
-            Vector2 norm = pointerLocalPos / movementRange;
-            InputManager.Instance.SetMovementInput(norm);
-        }
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            joystickRoot,
+            eventData.position,
+            eventData.pressEventCamera,
+            out pointerLocalPos
+        );
+
+        pointerLocalPos = Vector2.ClampMagnitude(pointerLocalPos, movementRange);
+        handle.anchoredPosition = pointerLocalPos;
+
+        Vector2 norm = pointerLocalPos / movementRange;
+
+        // 🔥 Hassasiyet artırma
+        float magnitude = norm.magnitude;
+        magnitude = Mathf.Pow(magnitude, sensitivityExponent);
+
+        norm = norm.normalized * magnitude;
+
+        InputManager.Instance.SetMovementInput(norm);
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        handle.anchoredPosition = startPos;
+        handle.anchoredPosition = Vector2.zero;
+        joystickRoot.gameObject.SetActive(false);
         InputManager.Instance.SetMovementInput(Vector2.zero);
     }
 }

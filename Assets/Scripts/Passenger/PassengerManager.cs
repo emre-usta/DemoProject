@@ -1,12 +1,15 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Manages passenger spawning, initial queue movement, luggage delivery, and upper floor queue
 /// </summary>
 public class PassengerManager : MonoBehaviour
 {
+    // Event for when a passenger is eliminated
+    public event Action OnPassengerEliminated;
     [Header("Spawn Settings")]
     [SerializeField] private PassengerController passengerPrefab;
     [SerializeField] private Transform passengerSpawnPointFront; // Front of the line (first passenger spawns here)
@@ -587,6 +590,9 @@ public class PassengerManager : MonoBehaviour
         {
             Destroy(passenger.gameObject);
         }
+
+        // Trigger event for passenger counter
+        OnPassengerEliminated?.Invoke();
     }
 
     /// <summary>

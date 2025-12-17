@@ -145,7 +145,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   luggagePrefab: {fileID: 2758714648903300233, guid: 600207ceff3314cd4874a86ae3297633, type: 3}
   luggageLocalOffset: {x: 0, y: 1, z: 0.3}
-  moveSpeed: 5
+  moveSpeed: 10
   waypointReachDistance: 0.5
   escalatorStartWaypointIndex: 3
   escalatorEndWaypointIndex: 5
@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4802da2a1a93843af9d96031c2c683dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handoverDuration: 0.5
+  handoverDuration: 0.3
   arcHeight: 2
   arcCurve:
     serializedVersion: 2

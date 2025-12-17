@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 input = InputManager.Instance.MovementInput;
 
-        if (input.sqrMagnitude > 0.01f)
+        if (input.sqrMagnitude > 0.0025f)
         {
             Vector3 isoDirection = new Vector3(input.x, 0, input.y);
             isoDirection = Quaternion.Euler(0, 45, 0) * isoDirection; // Isometric XZ plane
