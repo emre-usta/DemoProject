@@ -169,7 +169,12 @@ public class PassengerController : MonoBehaviour
 
         if (hasFollowTarget)
         {
-            SetAgentDestination(followTargetPosition);
+            // ✅ burada her frame set etmek yerine sadece ihtiyaç olduğunda set edelim
+            if ((followTargetPosition - currentDestination).sqrMagnitude > 0.1f * 0.1f)
+            {
+                currentDestination = followTargetPosition;
+                SetAgentDestination(followTargetPosition);
+            }
         }
     }
 
@@ -203,36 +208,6 @@ public class PassengerController : MonoBehaviour
 
                 luggageHandover.StartHandover(luggageObject, transform, stackPoint, OnHandoverComplete);
             }
-        }
-
-        // Wait for handover to complete
-        if (luggageHandedOver)
-        {
-            // Back away slightly (only once)
-            if (playerTransform != null && CurrentState == PassengerState.DeliveringLuggage)
-            {
-                agent.isStopped = true;
-                Vector3 awayFromPlayer = (transform.position - playerTransform.position).normalized;
-                if (awayFromPlayer == Vector3.zero) awayFromPlayer = -transform.forward;
-                transform.position += awayFromPlayer * moveSpeed * Time.deltaTime * 0.5f;
-            }
-
-            // Check if route is already set - if so, start immediately
-            // No coroutine, no delay - route set edildiği anda yolcu yürümeli
-            if (routeWaypoints.Count > 0)
-            {
-                // Route already set, start immediately
-                StopAllCoroutines();
-                
-                if (agent != null)
-                {
-                    agent.isStopped = false;
-                }
-                
-                SetState(PassengerState.FollowingRoute);
-                Debug.Log($"{gameObject.name}: Route found in UpdateDeliveringLuggage, starting route immediately. State: {CurrentState}");
-            }
-            // If route not set yet, PassengerManager will set it via SetRoute() and that will handle state change
         }
     }
 
@@ -402,87 +377,42 @@ public class PassengerController : MonoBehaviour
 
     private IEnumerator MoveDiagonallyOnEscalator()
     {
-        if (CurrentState != PassengerState.FollowingRoute)
-        {
-            isMovingOnEscalator = false;
-            escalatorCoroutine = null;
-            yield break;
-        }
+        isMovingOnEscalator = true;
 
-        if (routeWaypoints.Count <= escalatorEndWaypointIndex)
-        {
-            isMovingOnEscalator = false;
-            escalatorCoroutine = null;
-            currentWaypointIndex++;
-            yield break;
-        }
+        // 🔥 Waypoint 3 tamamen devre dışı
+        currentWaypointIndex = escalatorEndWaypointIndex;
 
-        // Stop NavMeshAgent
-        if (agent != null) agent.isStopped = true;
+        agent.isStopped = true;
+        agent.ResetPath();
 
         Vector3 startPos = transform.position;
         Vector3 endPos = ValidateWaypointOnNavMesh(routeWaypoints[escalatorEndWaypointIndex]);
 
         float elapsed = 0f;
 
-        // Face direction of movement
-        Vector3 direction = (endPos - startPos).normalized;
-        if (direction != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(direction);
-        }
-
-        // Move diagonally with incline
         while (elapsed < escalatorMoveDuration)
         {
-            if (CurrentState != PassengerState.FollowingRoute || isInQueue)
-            {
-                isMovingOnEscalator = false;
-                escalatorCoroutine = null;
-                if (agent != null) agent.isStopped = false;
-                yield break;
-            }
-
             elapsed += Time.deltaTime;
             float t = elapsed / escalatorMoveDuration;
-            float curveValue = escalatorMoveCurve.Evaluate(t);
 
-            Vector3 currentPos = Vector3.Lerp(startPos, endPos, curveValue);
+            Vector3 pos = Vector3.Lerp(startPos, endPos, escalatorMoveCurve.Evaluate(t));
+            pos.y += escalatorInclineCurve.Evaluate(t) * escalatorInclineHeight;
 
-            // Add vertical incline
-            float inclineFactor = escalatorInclineCurve.Evaluate(t);
-            float additionalHeight = inclineFactor * escalatorInclineHeight;
-            currentPos.y += additionalHeight;
-
-            transform.position = currentPos;
-
+            transform.position = pos;
             yield return null;
         }
 
-        // Final position
         transform.position = endPos;
 
-        // Re-enable NavMeshAgent
-        if (agent != null)
-        {
-            TryWarpToNavMesh(endPos);
-            agent.isStopped = false;
-        }
+        agent.ResetPath();
+        TryWarpToNavMesh(endPos);
+        agent.isStopped = false;
 
-        // Move to next waypoint (waypoint 6)
         currentWaypointIndex = escalatorEndWaypointIndex + 1;
         isMovingOnEscalator = false;
-        escalatorCoroutine = null;
         hasReachedCurrentWaypoint = false;
-
-        // Continue to next waypoint
-        if (currentWaypointIndex < routeWaypoints.Count)
-        {
-            Vector3 nextWaypoint = ValidateWaypointOnNavMesh(routeWaypoints[currentWaypointIndex]);
-            SetAgentDestination(nextWaypoint);
-            currentDestination = nextWaypoint;
-        }
     }
+
 
     #endregion
     
@@ -623,6 +553,9 @@ public class PassengerController : MonoBehaviour
 
     public void FollowPassenger(Vector3 position)
     {
+        if (hasFollowTarget && (position - followTargetPosition).sqrMagnitude < 0.05f * 0.05f)
+            return;
+
         followTargetPosition = position;
         hasFollowTarget = true;
         SetAgentDestination(position);
@@ -836,15 +769,17 @@ public class PassengerController : MonoBehaviour
             if (!agent.isOnNavMesh) return;
         }
 
-        if (agent.hasPath && Vector3.Distance(agent.destination, destination) < 0.25f)
-        {
-            return;
-        }
-
-        agent.speed = moveSpeed;
+        // ✅ ÖNCE agent’i serbest bırak
         agent.isStopped = false;
+        agent.speed = moveSpeed;
+
+        // (Opsiyonel) Aynı hedefe çok yakınsa tekrar set etme
+        if (agent.hasPath && Vector3.Distance(agent.destination, destination) < 0.25f)
+            return;
+
         agent.SetDestination(destination);
     }
+
 
     private void TryWarpToNavMesh(Vector3 position)
     {

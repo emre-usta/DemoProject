@@ -17,28 +17,46 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        // 🔒 Painting modundayken player tamamen kilitli
+        if (GameStateManager.Instance != null &&
+            GameStateManager.Instance.IsPaintingMode)
+        {
+            // Hareketi sıfırla
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            // Animasyonu idle'a çek
+            animator.SetFloat("Speed", 0f);
+            return;
+        }
+
+        // ---- NORMAL HAREKET KODU ----
         Vector2 input = InputManager.Instance.MovementInput;
 
         if (input.sqrMagnitude > 0.0025f)
         {
             Vector3 isoDirection = new Vector3(input.x, 0, input.y);
-            isoDirection = Quaternion.Euler(0, 45, 0) * isoDirection; // Isometric XZ plane
+            isoDirection = Quaternion.Euler(0, 45, 0) * isoDirection;
 
             moveDirection = isoDirection.normalized * moveSpeed;
 
-            // Use MovePosition for smooth movement
-            Vector3 targetPosition = rb.position + new Vector3(moveDirection.x, 0, moveDirection.z) * Time.fixedDeltaTime;
+            Vector3 targetPosition =
+                rb.position +
+                new Vector3(moveDirection.x, 0, moveDirection.z) * Time.fixedDeltaTime;
+
             rb.MovePosition(targetPosition);
 
-            // Face movement direction (optional)
             if (moveDirection != Vector3.zero)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(new Vector3(moveDirection.x, 0, moveDirection.z));
-                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 0.2f));
+                Quaternion targetRotation =
+                    Quaternion.LookRotation(new Vector3(moveDirection.x, 0, moveDirection.z));
+                rb.MoveRotation(
+                    Quaternion.Slerp(rb.rotation, targetRotation, 0.2f)
+                );
             }
         }
 
-        float speed = input.magnitude * moveSpeed; // this works well for anim
+        float speed = input.magnitude * moveSpeed;
         animator.SetFloat("Speed", speed);
     }
 }
