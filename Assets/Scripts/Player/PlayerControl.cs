@@ -9,6 +9,9 @@ public class PlayerController : MonoBehaviour
     private Vector3 moveDirection;
 
     private Animator animator; // Add this line
+    
+    private bool movementEnabled = true;
+    private bool forceIdle = false;
 
     private void Awake()
     {
@@ -17,6 +20,13 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        if (!movementEnabled)
+        {
+            if (animator == null) animator.SetFloat("speed", 0f);
+            return; 
+        }
+        
+        // Add this line
         // 🔒 Painting modundayken player tamamen kilitli
         if (GameStateManager.Instance != null &&
             GameStateManager.Instance.IsPaintingMode)
@@ -56,8 +66,20 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        float speed = input.magnitude * moveSpeed;
+        float speed = forceIdle ? 0f : (input.magnitude * moveSpeed);
         animator.SetFloat("Speed", speed);
+    }
+
+    public void SetMovementEnabled(bool enabled)
+    {
+        movementEnabled = enabled;
+    }
+
+    public void ForceIdle(bool idle)
+    {
+        forceIdle = idle;
+        if (idle && animator != null)
+            animator.SetFloat("Speed", 0f);
     }
 }
 // ... existing code ...

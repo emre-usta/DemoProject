@@ -70,6 +70,7 @@ public class PassengerController : MonoBehaviour
     // Escalator
     private bool isMovingOnEscalator = false;
     private Coroutine escalatorCoroutine = null;
+    private bool isOnEscalator = false;
 
     // Queue
     private bool isInQueue = false;
@@ -379,11 +380,12 @@ public class PassengerController : MonoBehaviour
     {
         isMovingOnEscalator = true;
 
-        // 🔥 Waypoint 3 tamamen devre dışı
-        currentWaypointIndex = escalatorEndWaypointIndex;
-
+        // 🔴 NAVMESH TAM KAPAT
         agent.isStopped = true;
         agent.ResetPath();
+
+        // 🔥 WAYPOINT 3–4–5 TAMAMEN ATLANIYOR
+        currentWaypointIndex = escalatorEndWaypointIndex;
 
         Vector3 startPos = transform.position;
         Vector3 endPos = ValidateWaypointOnNavMesh(routeWaypoints[escalatorEndWaypointIndex]);
@@ -393,24 +395,33 @@ public class PassengerController : MonoBehaviour
         while (elapsed < escalatorMoveDuration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / escalatorMoveDuration;
+            float t = Mathf.Clamp01(elapsed / escalatorMoveDuration);
 
-            Vector3 pos = Vector3.Lerp(startPos, endPos, escalatorMoveCurve.Evaluate(t));
+            Vector3 pos = Vector3.Lerp(
+                startPos,
+                endPos,
+                escalatorMoveCurve.Evaluate(t)
+            );
+
             pos.y += escalatorInclineCurve.Evaluate(t) * escalatorInclineHeight;
-
             transform.position = pos;
+
             yield return null;
         }
 
+        // 🔥 POZİSYON NETLE
         transform.position = endPos;
 
-        agent.ResetPath();
+        // 🔥 AGENT'I GERİ GETİR
         TryWarpToNavMesh(endPos);
         agent.isStopped = false;
 
+        // 🔥 BİR SONRAKİ WAYPOINT’TEN DEVAM
         currentWaypointIndex = escalatorEndWaypointIndex + 1;
-        isMovingOnEscalator = false;
         hasReachedCurrentWaypoint = false;
+        currentDestination = Vector3.zero;
+
+        isMovingOnEscalator = false;
     }
 
 
