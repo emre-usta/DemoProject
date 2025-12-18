@@ -42,6 +42,11 @@ public class PassengerController : MonoBehaviour
     [SerializeField] private int queueEndWaypointIndex = 11;
     [SerializeField] private int exitWaypointIndex = 12;
 
+    [Header("Money Settings")]
+    [SerializeField] private GameObject moneyPickupPrefab;
+    [SerializeField] private Transform moneyStartPoint;
+    [SerializeField] private Transform moneyFinishPoint;
+    private bool hasSpawnedMoney = false; // Track if money has been spawned for this passenger
     // Components
     private NavMeshAgent agent;
     private Animator animator;
@@ -335,16 +340,35 @@ public class PassengerController : MonoBehaviour
 
     private void UpdateInQueue()
     {
-        // Queue movement is handled by PassengerManager
-        // This state is mainly for tracking
-        if (agent != null && agent.isOnNavMesh)
+        if (agent == null || !agent.isOnNavMesh) return;
+
+        if (agent.pathPending) return;
+
+        float threshold = agent.stoppingDistance + waypointReachDistance;
+
+        // 🔴 Eğer agent duruyorsa ama hedefe uzaksa → yeniden yürüt
+        if (agent.isStopped && agent.remainingDistance > threshold)
         {
-            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + waypointReachDistance)
+            agent.isStopped = false;
+            hasReachedCurrentWaypoint = false;
+            return;
+        }
+
+        if (!hasReachedCurrentWaypoint && agent.remainingDistance <= threshold)
+        {
+            agent.isStopped = true;
+            hasReachedCurrentWaypoint = true;
+
+            if (currentWaypointIndex == queueEndWaypointIndex && !hasSpawnedMoney)
             {
-                agent.isStopped = true;
+                SpawnMoneyPickup();
+                hasSpawnedMoney = true;
             }
         }
     }
+
+
+
 
     #endregion
 
@@ -461,6 +485,36 @@ public class PassengerController : MonoBehaviour
     }
 
     #endregion
+    
+    #region Money Pickup
+
+    private void SpawnMoneyPickup()
+    {
+        if (moneyPickupPrefab == null || moneyStartPoint == null || moneyFinishPoint == null)
+            return;
+
+        // Direkt spawn et
+        GameObject moneyObj = Instantiate(
+            moneyPickupPrefab,
+            moneyStartPoint.position,
+            Quaternion.identity
+        );
+
+        // Prefab'da MoneyPickup VAR varsayımı
+        MoneyPickup moneyPickup = moneyObj.GetComponent<MoneyPickup>();
+
+        // Hareketi başlat
+        moneyPickup.StartMovement(
+            moneyStartPoint.position,
+            moneyFinishPoint.position
+        );
+
+        // Finish point zaten sahnede referanslı olmalı
+        MoneyFinishPoint.Instance.RegisterMoneyPickup(moneyPickup);
+    }
+
+
+    #endregion
 
     #region Queue Management
 
@@ -489,34 +543,23 @@ public class PassengerController : MonoBehaviour
 
     public void SetQueueWaypoint(int waypointIndex)
     {
-        if (waypointIndex < 0 || waypointIndex >= routeWaypoints.Count)
-        {
-            Debug.LogWarning($"{gameObject.name}: Invalid waypoint index {waypointIndex}!");
-            return;
-        }
-
         assignedQueueWaypointIndex = waypointIndex;
         currentWaypointIndex = waypointIndex;
+
         hasReachedCurrentWaypoint = false;
-        currentDestination = Vector3.zero;
-
-        if (agent != null && !agent.isOnNavMesh)
-        {
-            TryWarpToNavMesh(transform.position);
-        }
-
-        Vector3 targetPosition = routeWaypoints[waypointIndex];
 
         if (agent != null)
-        {
             agent.isStopped = false;
-        }
+
+        Vector3 targetPosition = routeWaypoints[waypointIndex];
+        currentDestination = targetPosition;
 
         SetAgentDestination(targetPosition);
-        currentDestination = targetPosition;
 
         SetState(PassengerState.InQueue);
     }
+
+
 
     public bool HasReachedQueueWaypoint()
     {
@@ -793,7 +836,7 @@ public class PassengerController : MonoBehaviour
             if (!agent.isOnNavMesh) return;
         }
 
-        if (agent.hasPath && Vector3.Distance(agent.destination, destination) < 0.1f)
+        if (agent.hasPath && Vector3.Distance(agent.destination, destination) < 0.25f)
         {
             return;
         }
