@@ -12,7 +12,18 @@ public class MoneyFinishPoint : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private float collectionCheckInterval = 0.2f;
-    [SerializeField] private float collectionDelay = 0.1f; // Delay between collecting each money
+    [SerializeField] private float collectionDelay = 0.1f;
+
+    // ============= YENİ EKLENEN BÖLÜM =============
+    [Header("Game Flow Integration")]
+    [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
+    public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.MoneyCollect;
+    
+    [Tooltip("Debug logları göster?")]
+    public bool showDebugLogs = true;
+
+    private bool isStepCompleted = false;
+    // =============================================
 
     private List<MoneyPickup> moneyPickups = new List<MoneyPickup>();
     private bool isPlayerInZone = false;
@@ -21,7 +32,6 @@ public class MoneyFinishPoint : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern - ensure only one instance exists
         if (Instance == null)
         {
             Instance = this;
@@ -49,9 +59,49 @@ public class MoneyFinishPoint : MonoBehaviour
     {
         if (other.CompareTag(playerTag))
         {
+            // ============= STEP KONTROLÜ =============
+            if (GameFlowManager.Instance != null)
+            {
+                if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
+                {
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"⏸️ MoneyCollect step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                    }
+                    return; // Bu step aktif değilse işlem yapma
+                }
+            }
+            // ========================================
+
             isPlayerInZone = true;
-            Debug.Log("MoneyFinishPoint: Player entered zone. Starting money collection.");
+            
+            if (showDebugLogs)
+            {
+                Debug.Log("✅ MoneyFinishPoint: Player entered zone. Starting money collection.");
+            }
+            
             CheckAndCollectMoney();
+
+            // ============= STEP'İ TAMAMLA (SADECE BİR KEZ) =============
+            if (!isStepCompleted)
+            {
+                isStepCompleted = true;
+
+                if (GameFlowManager.Instance != null)
+                {
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+                    }
+
+                    GameFlowManager.Instance.CompleteCurrentStep();
+                }
+                else
+                {
+                    Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+                }
+            }
+            // =======================================================
         }
     }
 
@@ -79,7 +129,11 @@ public class MoneyFinishPoint : MonoBehaviour
         if (moneyPickup != null && !moneyPickups.Contains(moneyPickup))
         {
             moneyPickups.Add(moneyPickup);
-            Debug.Log($"MoneyFinishPoint: Registered money pickup. Total: {moneyPickups.Count}");
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"MoneyFinishPoint: Registered money pickup. Total: {moneyPickups.Count}");
+            }
         }
     }
 
@@ -90,7 +144,6 @@ public class MoneyFinishPoint : MonoBehaviour
     {
         if (isCollecting) return;
 
-        // Find all money pickups that have reached finish point
         List<MoneyPickup> readyToCollect = new List<MoneyPickup>();
         foreach (var money in moneyPickups)
         {
@@ -106,7 +159,10 @@ public class MoneyFinishPoint : MonoBehaviour
             }
         }
 
-        Debug.Log($"MoneyFinishPoint: Checking money. Total registered: {moneyPickups.Count}, Ready to collect: {readyToCollect.Count}, Player in zone: {isPlayerInZone}");
+        if (showDebugLogs)
+        {
+            Debug.Log($"MoneyFinishPoint: Checking money. Total registered: {moneyPickups.Count}, Ready to collect: {readyToCollect.Count}, Player in zone: {isPlayerInZone}");
+        }
 
         if (readyToCollect.Count > 0 && isPlayerInZone)
         {
@@ -117,23 +173,33 @@ public class MoneyFinishPoint : MonoBehaviour
     private IEnumerator CollectAllMoney(List<MoneyPickup> moneyList)
     {
         isCollecting = true;
-        Debug.Log($"MoneyFinishPoint: Collecting {moneyList.Count} money pickups. Total in list: {moneyPickups.Count}");
+        
+        if (showDebugLogs)
+        {
+            Debug.Log($"MoneyFinishPoint: Collecting {moneyList.Count} money pickups. Total in list: {moneyPickups.Count}");
+        }
 
         foreach (var money in moneyList)
         {
             if (money != null && !money.IsCollected())
             {
-                Debug.Log($"MoneyFinishPoint: Collecting money pickup. HasReached: {money.HasReachedFinishPoint()}, IsCollected: {money.IsCollected()}");
+                if (showDebugLogs)
+                {
+                    Debug.Log($"MoneyFinishPoint: Collecting money pickup. HasReached: {money.HasReachedFinishPoint()}, IsCollected: {money.IsCollected()}");
+                }
                 money.Collect();
                 yield return new WaitForSeconds(collectionDelay);
             }
         }
 
-        // Clean up collected/destroyed money from list (only after collection is complete)
         moneyPickups.RemoveAll(m => m == null || m.IsCollected());
 
         isCollecting = false;
-        Debug.Log($"MoneyFinishPoint: Finished collecting money. Remaining: {moneyPickups.Count}");
+        
+        if (showDebugLogs)
+        {
+            Debug.Log($"MoneyFinishPoint: Finished collecting money. Remaining: {moneyPickups.Count}");
+        }
     }
 
     /// <summary>
@@ -147,4 +213,3 @@ public class MoneyFinishPoint : MonoBehaviour
         }
     }
 }
-

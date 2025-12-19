@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
     {
         State = newState;
         // Fire global GameState change event
-        EventBus.RaiseGameStateChanged(newState);
+        //EventBus.RaiseGameStateChanged(newState);
     }
 
     public void AddCurrency(int amount)

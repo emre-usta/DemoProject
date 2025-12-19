@@ -1272,7 +1272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   luggagePrefab: {fileID: 2758714648903300233, guid: 600207ceff3314cd4874a86ae3297633, type: 3}
-  luggageLocalOffset: {x: 0, y: 1, z: 0.3}
+  luggageLocalOffset: {x: 0, y: 1.2, z: 0.5}
   moveSpeed: 10
   waypointReachDistance: 0.5
   escalatorStartWaypointIndex: 3

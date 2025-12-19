@@ -100,7 +100,7 @@ public class PassengerManager : MonoBehaviour
                 spawnPos = hit.position;
             }
 
-            PassengerController passenger = Instantiate(passengerPrefab, spawnPos, Quaternion.identity);
+            PassengerController passenger = Instantiate(passengerPrefab, spawnPos, Quaternion.Euler(0f, -90f, 0f));
             passengers.Add(passenger);
         }
 

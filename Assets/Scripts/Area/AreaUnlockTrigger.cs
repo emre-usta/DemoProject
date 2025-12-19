@@ -4,8 +4,8 @@ using System.Collections;
 public class AreaUnlockTrigger : MonoBehaviour
 {
     [Header("Unlock Settings")]
-    public GameObject part2Environment;     // Assign Environment->Part 2
-    public GameObject escalatorObject1;      // Assign escalators GameObject(s)
+    public GameObject part2Environment;
+    public GameObject escalatorObject1;
     public GameObject escalatorObject2;
     public GameObject boardObject;
     public GameObject truck;
@@ -19,6 +19,15 @@ public class AreaUnlockTrigger : MonoBehaviour
     [Header("Animation Settings")]
     [SerializeField] private float animationDuration = 1f;
 
+    // ============= YENİ EKLENEN BÖLÜM =============
+    [Header("Game Flow Integration")]
+    [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
+    public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.AreaUnlock;
+    
+    [Tooltip("Debug logları göster?")]
+    public bool showDebugLogs = true;
+    // =============================================
+
     private bool playerInZone = false;
     private bool isUnlocking = false;
     private bool isUnlocked = false;
@@ -29,6 +38,21 @@ public class AreaUnlockTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player") && !isUnlocked && !isUnlocking)
         {
+            // ============= YENİ EKLENEN KONTROL =============
+            // GameFlowManager kontrolü - bu step aktif mi?
+            if (GameFlowManager.Instance != null)
+            {
+                if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
+                {
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"⏸️ AreaUnlock henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                    }
+                    return; // Bu step henüz aktif değilse işlem yapma
+                }
+            }
+            // =============================================
+
             playerInZone = true;
             StartUnlockProcess();
         }
@@ -41,7 +65,6 @@ public class AreaUnlockTrigger : MonoBehaviour
             playerInZone = false;
             if (isUnlocking && !isUnlocked)
             {
-                // Player left before completing unlock - reset
                 ResetUnlockProcess();
             }
         }
@@ -64,16 +87,22 @@ public class AreaUnlockTrigger : MonoBehaviour
     {
         if (GameManager.Instance.Currency >= cost)
         {
-            // Deduct currency immediately when player enters
             GameManager.Instance.SpendCurrency(cost);
             currencyDeducted = true;
             isUnlocking = true;
             unlockTimer = 0f;
-            Debug.Log($"Unlock process started. Waiting {waitTime} seconds... Currency deducted: {cost}");
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"✅ Unlock process started. Waiting {waitTime} seconds... Currency deducted: {cost}");
+            }
         }
         else
         {
-            Debug.Log($"Not enough currency to unlock. Need {cost}, have {GameManager.Instance.Currency}");
+            if (showDebugLogs)
+            {
+                Debug.Log($"❌ Not enough currency to unlock. Need {cost}, have {GameManager.Instance.Currency}");
+            }
         }
     }
 
@@ -82,12 +111,15 @@ public class AreaUnlockTrigger : MonoBehaviour
         isUnlocking = false;
         unlockTimer = 0f;
         
-        // Refund currency if it was deducted
         if (currencyDeducted)
         {
             GameManager.Instance.AddCurrency(cost);
             currencyDeducted = false;
-            Debug.Log("Unlock cancelled. Currency refunded.");
+            
+            if (showDebugLogs)
+            {
+                Debug.Log("🔄 Unlock cancelled. Currency refunded.");
+            }
         }
     }
 
@@ -96,7 +128,7 @@ public class AreaUnlockTrigger : MonoBehaviour
         isUnlocked = true;
         isUnlocking = false;
         
-        // Activate the area objects first (they'll be at scale 0 initially)
+        // Activate the area objects
         if (part2Environment != null)
         {
             part2Environment.SetActive(true);
@@ -146,23 +178,40 @@ public class AreaUnlockTrigger : MonoBehaviour
             PlayUnlockAnimation(banks);
         }
         
-        Debug.Log("Area unlocked! Part 2 and escalators are now active.");
+        if (showDebugLogs)
+        {
+            Debug.Log("🎉 Area unlocked! Part 2 and escalators are now active.");
+        }
+
+        // ============= EN ÖNEMLİ EKLEME - BU SATIRLAR! =============
+        // GameFlowManager'a bu step'in tamamlandığını bildir
+        if (GameFlowManager.Instance != null)
+        {
+            if (showDebugLogs)
+            {
+                Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+            }
+            
+            GameFlowManager.Instance.CompleteCurrentStep();
+        }
+        else
+        {
+            Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+        }
+        // =======================================================
         
-        // Hide/disappear the trigger zone after unlock is complete
+        // Hide the trigger zone after unlock
         gameObject.SetActive(false);
     }
 
     private void PlayUnlockAnimation(GameObject targetObject)
     {
-        // Get or add UnlockAnimation component
         UnlockAnimation anim = targetObject.GetComponent<UnlockAnimation>();
         if (anim == null)
         {
             anim = targetObject.AddComponent<UnlockAnimation>();
         }
         
-        // Start the animation
         anim.PlayUnlockAnimation();
     }
 }
-

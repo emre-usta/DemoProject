@@ -10,14 +10,24 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     
     [Header("Settings")]
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private float checkInterval = 0.2f; // How often to check and advance queue while player is in zone
+    [SerializeField] private float checkInterval = 0.2f;
+
+    // ============= YENİ EKLENEN BÖLÜM =============
+    [Header("Game Flow Integration")]
+    [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
+    public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.UpperFloorQueue;
+    
+    [Tooltip("Debug logları göster?")]
+    public bool showDebugLogs = true;
+
+    private bool isStepCompleted = false;
+    // =============================================
     
     private bool isPlayerInZone = false;
     private float lastCheckTime = 0f;
     
     private void Start()
     {
-        // Try to find PassengerManager if not assigned
         if (passengerManager == null)
         {
             passengerManager = FindObjectOfType<PassengerManager>();
@@ -31,7 +41,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     
     private void Update()
     {
-        // Continuously process queue while player is in zone
         if (isPlayerInZone && passengerManager != null)
         {
             if (Time.time - lastCheckTime >= checkInterval)
@@ -44,7 +53,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     
     private void OnTriggerStay(Collider other)
     {
-        // Ensure player is still in zone (in case OnTriggerEnter was missed)
         if (other.CompareTag(playerTag))
         {
             isPlayerInZone = true;
@@ -55,13 +63,53 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     {
         if (other.CompareTag(playerTag))
         {
+            // ============= STEP KONTROLÜ =============
+            if (GameFlowManager.Instance != null)
+            {
+                if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
+                {
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"⏸️ UpperFloorQueue step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                    }
+                    return; // Bu step aktif değilse işlem yapma
+                }
+            }
+            // ========================================
+
             isPlayerInZone = true;
             lastCheckTime = Time.time;
+            
             if (passengerManager != null)
             {
                 passengerManager.SetPlayerInUpperFloorZone(true);
             }
-            Debug.Log("UpperFloorQueueTrigger: Player entered trigger zone. Queue will advance continuously.");
+
+            if (showDebugLogs)
+            {
+                Debug.Log("✅ UpperFloorQueueTrigger: Player entered trigger zone. Queue will advance continuously.");
+            }
+
+            // ============= STEP'İ TAMAMLA (SADECE BİR KEZ) =============
+            if (!isStepCompleted)
+            {
+                isStepCompleted = true;
+
+                if (GameFlowManager.Instance != null)
+                {
+                    if (showDebugLogs)
+                    {
+                        Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+                    }
+
+                    GameFlowManager.Instance.CompleteCurrentStep();
+                }
+                else
+                {
+                    Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+                }
+            }
+            // =======================================================
         }
     }
     
@@ -70,13 +118,16 @@ public class UpperFloorQueueTrigger : MonoBehaviour
         if (other.CompareTag(playerTag))
         {
             isPlayerInZone = false;
+            
             if (passengerManager != null)
             {
                 passengerManager.SetPlayerInUpperFloorZone(false);
             }
-            Debug.Log("UpperFloorQueueTrigger: Player exited trigger zone. Queue advancement stopped.");
+
+            if (showDebugLogs)
+            {
+                Debug.Log("UpperFloorQueueTrigger: Player exited trigger zone. Queue advancement stopped.");
+            }
         }
     }
 }
-
-
