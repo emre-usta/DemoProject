@@ -3,46 +3,39 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-/// <summary>
-/// Manages passenger spawning, initial queue movement, luggage delivery, and upper floor queue
-/// </summary>
 public class PassengerManager : MonoBehaviour
 {
-    // Event for when a passenger is eliminated
     public event Action OnPassengerEliminated;
     [Header("Spawn Settings")]
     [SerializeField] private PassengerController passengerPrefab;
-    [SerializeField] private Transform passengerSpawnPointFront; // Front of the line (first passenger spawns here)
-    [SerializeField] private Transform passengerSpawnPointBack;  // Back of the line (last passenger spawns here)
-    [SerializeField] private int passengerCount = 5; // Total number of passengers to spawn
-    [SerializeField] private float followDistance = 1.5f; // Distance between passengers when following each other
+    [SerializeField] private Transform passengerSpawnPointFront; 
+    [SerializeField] private Transform passengerSpawnPointBack;  
+    [SerializeField] private int passengerCount = 5; 
 
     [Header("Luggage Delivery")]
-    [SerializeField] private Transform luggageDeliveryPoint; // Where passengers go to deliver luggage
-    [SerializeField] private Transform playerLuggageStackPoint; // Where luggage goes on player (PlayerLuggageStack's stackParent)
-    [SerializeField] private float timeBetweenDeliveries = 2f; // Time between each passenger delivering luggage
+    [SerializeField] private Transform luggageDeliveryPoint; 
+    [SerializeField] private Transform playerLuggageStackPoint; 
+    [SerializeField] private float timeBetweenDeliveries = 2f; 
 
     [Header("Route Settings")]
     [Tooltip("Single route with 13 waypoints (0-12). Waypoints 3-5: escalator, 7-11: queue, 12: exit.")]
     [SerializeField] private PassengerRoute passengerRoute;
 
     [Header("Upper Floor Queue Settings")]
-    [SerializeField] private int queueStartWaypointIndex = 7; // First queue waypoint
-    [SerializeField] private int queueEndWaypointIndex = 11; // Last queue waypoint
-    [SerializeField] private int exitWaypointIndex = 12; // Exit waypoint where passengers are eliminated
-    [SerializeField] private float timeBetweenMovements = 0.2f; // Delay between each passenger moving forward in queue
-    [SerializeField] private float exitCheckInterval = 0.5f; // How often to check for passengers at exit waypoint
+    [SerializeField] private int queueStartWaypointIndex = 7; 
+    [SerializeField] private int queueEndWaypointIndex = 11; 
+    [SerializeField] private int exitWaypointIndex = 12; 
+    [SerializeField] private float timeBetweenMovements = 0.2f; 
+    [SerializeField] private float exitCheckInterval = 0.5f;
 
-    // Passenger lists
     private List<PassengerController> passengers = new List<PassengerController>();
-    private List<PassengerController> queuedPassengers = new List<PassengerController>(); // Upper floor queue
-    private Dictionary<PassengerController, int> passengerWaypointMap = new Dictionary<PassengerController, int>(); // Maps passenger to their current waypoint index
+    private List<PassengerController> queuedPassengers = new List<PassengerController>(); 
+    private Dictionary<PassengerController, int> passengerWaypointMap = new Dictionary<PassengerController, int>(); 
 
-    // State management
-    private bool isInitialMovementActive = false; // Whether passengers are following each other
+    private bool isInitialMovementActive = false; 
     private bool isProcessingLuggage = false;
     private int processedLuggageCount = 0;
-    private int currentLuggageDeliveryIndex = -1; // Index of passenger currently delivering luggage (-1 = none)
+    private int currentLuggageDeliveryIndex = -1; 
     private bool isProcessingQueue = false;
     private bool isPlayerInTriggerZone = false;
     private float lastExitCheckTime = 0f;
@@ -54,23 +47,18 @@ public class PassengerManager : MonoBehaviour
 
     private void Update()
     {
-        // Update initial queue movement (passengers following each other)
         if (isInitialMovementActive)
         {
             UpdateInitialQueueMovement();
         }
 
-        // Periodically check if any passengers at exit waypoint should be eliminated
         if (Time.time - lastExitCheckTime >= exitCheckInterval)
         {
             lastExitCheckTime = Time.time;
             CheckAndEliminatePassengersAtExit();
         }
     }
-
-    /// <summary>
-    /// Spawn all passengers at once between front and back spawn points
-    /// </summary>
+    
     private void SpawnPassengers()
     {
         if (passengerPrefab == null || passengerSpawnPointFront == null || passengerSpawnPointBack == null)
@@ -81,19 +69,16 @@ public class PassengerManager : MonoBehaviour
 
         passengers.Clear();
 
-        // Calculate spawn positions evenly distributed between front and back
         Vector3 frontPos = passengerSpawnPointFront.position;
         Vector3 backPos = passengerSpawnPointBack.position;
         Vector3 direction = (backPos - frontPos).normalized;
         float totalDistance = Vector3.Distance(frontPos, backPos);
         float spacing = passengerCount > 1 ? totalDistance / (passengerCount - 1) : 0f;
 
-        // Spawn all passengers at once
         for (int i = 0; i < passengerCount; i++)
         {
             Vector3 spawnPos = frontPos + direction * (i * spacing);
             
-            // Ensure spawn position is on NavMesh
             UnityEngine.AI.NavMeshHit hit;
             if (UnityEngine.AI.NavMesh.SamplePosition(spawnPos, out hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
             {
@@ -106,10 +91,7 @@ public class PassengerManager : MonoBehaviour
 
         Debug.Log($"PassengerManager: Spawned {passengers.Count} passengers.");
     }
-
-    /// <summary>
-    /// Start initial movement where all passengers follow each other
-    /// </summary>
+    
     public void StartInitialMovement()
     {
         if (passengers.Count == 0) return;
@@ -117,28 +99,19 @@ public class PassengerManager : MonoBehaviour
         isInitialMovementActive = true;
         Debug.Log("PassengerManager: Starting initial queue movement.");
     }
-
-    /// <summary>
-    /// Trigger passenger movement (alias for StartInitialMovement for compatibility)
-    /// </summary>
+    
     public void TriggerPassengerMovement()
     {
         StartInitialMovement();
     }
 
-    /// <summary>
-    /// Update passengers following each other in initial queue
-    /// Only one passenger at a time goes to luggage delivery point
-    /// Other passengers fill the gap by moving forward in the queue
-    /// </summary>
+ 
     private void UpdateInitialQueueMovement()
     {
         if (passengers.Count == 0) return;
 
-        // Check if we need to start the first passenger
         if (currentLuggageDeliveryIndex == -1 && luggageDeliveryPoint != null)
         {
-            // Start first passenger
             if (passengers[0] != null && passengers[0].CurrentState == PassengerController.PassengerState.WaitingInQueue)
             {
                 currentLuggageDeliveryIndex = 0;
@@ -147,20 +120,16 @@ public class PassengerManager : MonoBehaviour
             }
         }
 
-        // Check if current passenger has completed delivery and we can move to next
         if (currentLuggageDeliveryIndex >= 0 && currentLuggageDeliveryIndex < passengers.Count)
         {
             PassengerController currentPassenger = passengers[currentLuggageDeliveryIndex];
             
-            // If current passenger has started route, move to next passenger
             if (currentPassenger != null && 
                 (currentPassenger.CurrentState == PassengerController.PassengerState.FollowingRoute ||
                  currentPassenger.CurrentState == PassengerController.PassengerState.Finished))
             {
-                // Current passenger has completed delivery, move to next
                 currentLuggageDeliveryIndex++;
                 
-                // Start next passenger if available
                 if (currentLuggageDeliveryIndex < passengers.Count)
                 {
                     PassengerController nextPassenger = passengers[currentLuggageDeliveryIndex];
@@ -175,8 +144,6 @@ public class PassengerManager : MonoBehaviour
             }
         }
 
-        // Calculate queue positions for passengers behind the current delivery passenger
-        // They should fill the gap by moving forward
         if (passengerSpawnPointFront != null && passengerSpawnPointBack != null)
         {
             Vector3 frontPos = passengerSpawnPointFront.position;
@@ -185,52 +152,37 @@ public class PassengerManager : MonoBehaviour
             float totalDistance = Vector3.Distance(frontPos, backPos);
             float spacing = passengerCount > 1 ? totalDistance / (passengerCount - 1) : 0f;
 
-            // Move passengers behind the current delivery passenger forward to fill gaps
             for (int i = currentLuggageDeliveryIndex + 1; i < passengers.Count; i++)
             {
                 if (passengers[i] == null) continue;
 
-                // Only move passengers that are still waiting in queue
                 if (passengers[i].CurrentState == PassengerController.PassengerState.WaitingInQueue)
                 {
-                    // Calculate target position: passenger should be at position (i - currentLuggageDeliveryIndex - 1)
-                    // This fills the gap left by passengers who have moved to delivery point
                     int queuePosition = i - currentLuggageDeliveryIndex - 1;
                     Vector3 targetPos = frontPos + direction * (queuePosition * spacing);
                     
-                    // Ensure target position is on NavMesh
                     UnityEngine.AI.NavMeshHit hit;
                     if (UnityEngine.AI.NavMesh.SamplePosition(targetPos, out hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
                     {
                         targetPos = hit.position;
                     }
-
-                    // Move passenger to fill the gap
                     passengers[i].FollowPassenger(targetPos);
                 }
             }
         }
     }
-
-    /// <summary>
-    /// Start luggage delivery sequence (called when first passenger reaches delivery point)
-    /// This now just starts the initial movement - actual delivery is handled in UpdateInitialQueueMovement
-    /// </summary>
+    
     public void StartLuggageDelivery()
     {
         if (isProcessingLuggage || passengers.Count == 0) return;
 
         isProcessingLuggage = true;
         processedLuggageCount = 0;
-        currentLuggageDeliveryIndex = -1; // Reset to start from first passenger
+        currentLuggageDeliveryIndex = -1; 
         
-        // Start monitoring luggage deliveries
         StartCoroutine(MonitorLuggageDeliveries());
     }
-
-    /// <summary>
-    /// Monitor luggage deliveries and assign routes when passengers complete delivery
-    /// </summary>
+    
     private IEnumerator MonitorLuggageDeliveries()
     {
         Debug.Log($"PassengerManager: Starting MonitorLuggageDeliveries coroutine. Total passengers: {passengers.Count}");
@@ -316,13 +268,11 @@ public class PassengerManager : MonoBehaviour
                     // Check current state before setting route
                     Debug.Log($"PassengerManager: [ROUTE] Assigning route to passenger {processedLuggageCount}. Current state: {currentPassenger.CurrentState}, IsDeliveryComplete: {currentPassenger.IsDeliveryComplete()}");
                     
-                    // CRITICAL: Set route - SetRoute() should handle state transition
                     currentPassenger.SetRoute(waypoints);
                     
                     // Give it a moment for SetRoute to process
                     yield return new WaitForSeconds(0.2f);
                     
-                    // CRITICAL: Double-check state and force if needed
                     // This is a safety net to ensure state transition happens
                     if (currentPassenger.CurrentState != PassengerController.PassengerState.FollowingRoute)
                     {
@@ -365,10 +315,7 @@ public class PassengerManager : MonoBehaviour
     }
 
     #region Upper Floor Queue Management
-
-    /// <summary>
-    /// Register a passenger that reached waypoint 7 (queue start)
-    /// </summary>
+    
     public void RegisterPassengerForQueue(PassengerController passenger)
     {
         if (passenger == null) return;
@@ -380,7 +327,6 @@ public class PassengerManager : MonoBehaviour
             return;
         }
 
-        // Determine which waypoint this passenger should go to
         // First passenger goes to waypoint 11, second to 10, third to 9, fourth to 8, fifth to 7
         int targetWaypointIndex = queueEndWaypointIndex - queuedPassengers.Count;
 
@@ -401,9 +347,7 @@ public class PassengerManager : MonoBehaviour
         Debug.Log($"PassengerManager: Registered passenger {passenger.name} at waypoint {targetWaypointIndex}. Total in queue: {queuedPassengers.Count}");
     }
 
-    /// <summary>
-    /// Set whether player is in trigger zone (called by trigger)
-    /// </summary>
+
     public void SetPlayerInTriggerZone(bool inZone)
     {
         isPlayerInTriggerZone = inZone;
@@ -414,18 +358,12 @@ public class PassengerManager : MonoBehaviour
             StartCoroutine(CheckQueueAdvancement());
         }
     }
-
-    /// <summary>
-    /// Set whether player is in upper floor trigger zone (alias for SetPlayerInTriggerZone for compatibility)
-    /// </summary>
+    
     public void SetPlayerInUpperFloorZone(bool inZone)
     {
         SetPlayerInTriggerZone(inZone);
     }
-
-    /// <summary>
-    /// Continuously check if queue can be advanced while player is in trigger zone
-    /// </summary>
+    
     private IEnumerator CheckQueueAdvancement()
     {
         while (isPlayerInTriggerZone)
@@ -438,14 +376,11 @@ public class PassengerManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Check if queue can be advanced and advance if ready
-    /// </summary>
+
     private void AdvanceQueueIfReady()
     {
         if (isProcessingQueue || queuedPassengers.Count == 0) return;
 
-        // Find the first passenger that has reached their waypoint and can move forward
         for (int i = 0; i < queuedPassengers.Count; i++)
         {
             PassengerController passenger = queuedPassengers[i];
@@ -455,7 +390,6 @@ public class PassengerManager : MonoBehaviour
             {
                 int currentWaypoint = passengerWaypointMap[passenger];
 
-                // Check if passenger has reached their current waypoint
                 if (passenger.HasReachedQueueWaypoint())
                 {
                     // Check if passenger should be eliminated (reached exit waypoint 12)
@@ -475,17 +409,12 @@ public class PassengerManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Advance upper floor queue if ready (public method for trigger compatibility)
-    /// </summary>
+    
     public void AdvanceUpperFloorQueueIfReady()
     {
         AdvanceQueueIfReady();
     }
-
-    /// <summary>
-    /// Advance a passenger to the next waypoint in queue
-    /// </summary>
+    
     private IEnumerator AdvancePassengerInQueue(PassengerController passenger, int currentWaypoint)
     {
         isProcessingQueue = true;
@@ -499,10 +428,7 @@ public class PassengerManager : MonoBehaviour
         yield return new WaitForSeconds(timeBetweenMovements);
         isProcessingQueue = false;
     }
-
-    /// <summary>
-    /// Eliminate a passenger sequentially (with a small delay for visual effect)
-    /// </summary>
+    
     private IEnumerator EliminatePassengerSequentially(PassengerController passenger)
     {
         isProcessingQueue = true;
@@ -514,10 +440,7 @@ public class PassengerManager : MonoBehaviour
         OnPassengerReachedExit(passenger);
         isProcessingQueue = false;
     }
-
-    /// <summary>
-    /// Check for passengers at exit waypoint and eliminate them
-    /// </summary>
+    
     private void CheckAndEliminatePassengersAtExit()
     {
         if (queuedPassengers.Count == 0 || isProcessingQueue) return;
@@ -546,10 +469,7 @@ public class PassengerManager : MonoBehaviour
             StartCoroutine(EliminatePassengersSequentially(passengersToEliminate));
         }
     }
-
-    /// <summary>
-    /// Eliminate multiple passengers sequentially
-    /// </summary>
+    
     private IEnumerator EliminatePassengersSequentially(List<PassengerController> passengers)
     {
         isProcessingQueue = true;
@@ -564,10 +484,7 @@ public class PassengerManager : MonoBehaviour
 
         isProcessingQueue = false;
     }
-
-    /// <summary>
-    /// Called when a passenger reaches the exit waypoint (12) - eliminate them
-    /// </summary>
+    
     public void OnPassengerReachedExit(PassengerController passenger)
     {
         if (passenger == null) return;
@@ -594,10 +511,7 @@ public class PassengerManager : MonoBehaviour
         // Trigger event for passenger counter
         OnPassengerEliminated?.Invoke();
     }
-
-    /// <summary>
-    /// Get the player's luggage stack point transform
-    /// </summary>
+    
     public Transform GetPlayerLuggageStackPoint()
     {
         if (playerLuggageStackPoint != null)
@@ -612,8 +526,6 @@ public class PassengerManager : MonoBehaviour
             PlayerLuggageStack stack = player.GetComponent<PlayerLuggageStack>();
             if (stack != null)
             {
-                // Use reflection or public method to get stackParent
-                // For now, return player transform
                 return player.transform;
             }
         }

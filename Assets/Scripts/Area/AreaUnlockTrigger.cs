@@ -13,20 +13,19 @@ public class AreaUnlockTrigger : MonoBehaviour
     public GameObject plane;
     public GameObject xRayZone;
     public GameObject banks;
+    public GameObject paintZone;
     public int cost = 50;
     public float waitTime = 2f;
     
     [Header("Animation Settings")]
     [SerializeField] private float animationDuration = 0.5f;
 
-    // ============= YENİ EKLENEN BÖLÜM =============
     [Header("Game Flow Integration")]
     [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
     public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.AreaUnlock;
     
     [Tooltip("Debug logları göster?")]
     public bool showDebugLogs = true;
-    // =============================================
 
     private bool playerInZone = false;
     private bool isUnlocking = false;
@@ -38,20 +37,18 @@ public class AreaUnlockTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player") && !isUnlocked && !isUnlocking)
         {
-            // ============= YENİ EKLENEN KONTROL =============
-            // GameFlowManager kontrolü - bu step aktif mi?
+
             if (GameFlowManager.Instance != null)
             {
                 if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
                 {
                     if (showDebugLogs)
                     {
-                        Debug.Log($"⏸️ AreaUnlock henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                        Debug.Log($"AreaUnlock henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
                     }
-                    return; // Bu step henüz aktif değilse işlem yapma
+                    return; 
                 }
             }
-            // =============================================
 
             playerInZone = true;
             StartUnlockProcess();
@@ -94,14 +91,14 @@ public class AreaUnlockTrigger : MonoBehaviour
             
             if (showDebugLogs)
             {
-                Debug.Log($"✅ Unlock process started. Waiting {waitTime} seconds... Currency deducted: {cost}");
+                Debug.Log($"nlock process started. Waiting {waitTime} seconds... Currency deducted: {cost}");
             }
         }
         else
         {
             if (showDebugLogs)
             {
-                Debug.Log($"❌ Not enough currency to unlock. Need {cost}, have {GameManager.Instance.Currency}");
+                Debug.Log($"Not enough currency to unlock. Need {cost}, have {GameManager.Instance.Currency}");
             }
         }
     }
@@ -118,7 +115,7 @@ public class AreaUnlockTrigger : MonoBehaviour
             
             if (showDebugLogs)
             {
-                Debug.Log("🔄 Unlock cancelled. Currency refunded.");
+                Debug.Log("Unlock cancelled. Currency refunded.");
             }
         }
     }
@@ -177,28 +174,30 @@ public class AreaUnlockTrigger : MonoBehaviour
             banks.SetActive(true);
             PlayUnlockAnimation(banks);
         }
+        if (paintZone != null)
+        {
+            paintZone.SetActive(true);
+            PlayUnlockAnimation(paintZone);
+        }
         
         if (showDebugLogs)
         {
             Debug.Log("🎉 Area unlocked! Part 2 and escalators are now active.");
         }
 
-        // ============= EN ÖNEMLİ EKLEME - BU SATIRLAR! =============
-        // GameFlowManager'a bu step'in tamamlandığını bildir
         if (GameFlowManager.Instance != null)
         {
             if (showDebugLogs)
             {
-                Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+                Debug.Log($"GameFlow step tamamlandı: {assignedStep}");
             }
             
             GameFlowManager.Instance.CompleteCurrentStep();
         }
         else
         {
-            Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+            Debug.LogError("GameFlowManager.Instance bulunamadı!");
         }
-        // =======================================================
         
         // Hide the trigger zone after unlock
         gameObject.SetActive(false);

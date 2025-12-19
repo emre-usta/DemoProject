@@ -36,8 +36,6 @@ public class GameManager : MonoBehaviour
     public void SetState(GameState newState)
     {
         State = newState;
-        // Fire global GameState change event
-        //EventBus.RaiseGameStateChanged(newState);
     }
 
     public void AddCurrency(int amount)

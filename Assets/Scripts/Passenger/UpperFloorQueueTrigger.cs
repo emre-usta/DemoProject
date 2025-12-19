@@ -1,8 +1,6 @@
 using UnityEngine;
 
-/// <summary>
-/// Trigger zone that continuously advances the upper floor queue while player is inside
-/// </summary>
+
 public class UpperFloorQueueTrigger : MonoBehaviour
 {
     [Header("References")]
@@ -12,7 +10,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private float checkInterval = 0.2f;
 
-    // ============= YENİ EKLENEN BÖLÜM =============
     [Header("Game Flow Integration")]
     [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
     public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.UpperFloorQueue;
@@ -21,7 +18,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     public bool showDebugLogs = true;
 
     private bool isStepCompleted = false;
-    // =============================================
     
     private bool isPlayerInZone = false;
     private float lastCheckTime = 0f;
@@ -63,7 +59,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
     {
         if (other.CompareTag(playerTag))
         {
-            // ============= STEP KONTROLÜ =============
             if (GameFlowManager.Instance != null)
             {
                 if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
@@ -72,10 +67,9 @@ public class UpperFloorQueueTrigger : MonoBehaviour
                     {
                         Debug.Log($"⏸️ UpperFloorQueue step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
                     }
-                    return; // Bu step aktif değilse işlem yapma
+                    return; 
                 }
             }
-            // ========================================
 
             isPlayerInZone = true;
             lastCheckTime = Time.time;
@@ -90,7 +84,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
                 Debug.Log("✅ UpperFloorQueueTrigger: Player entered trigger zone. Queue will advance continuously.");
             }
 
-            // ============= STEP'İ TAMAMLA (SADECE BİR KEZ) =============
             if (!isStepCompleted)
             {
                 isStepCompleted = true;
@@ -109,7 +102,6 @@ public class UpperFloorQueueTrigger : MonoBehaviour
                     Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
                 }
             }
-            // =======================================================
         }
     }
     

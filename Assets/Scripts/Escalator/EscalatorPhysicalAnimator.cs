@@ -47,7 +47,6 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
 
     private void Start()
     {
-        // Otomatik referanslar oluştur
         if (startPoint == null || endPoint == null)
         {
             CreateDefaultPoints();
@@ -64,10 +63,9 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
             Debug.LogError("EscalatorPhysicalAnimator: Step Prefab atanmamış!");
         }
 
-        // Gecikmeyle başlat
         if (playOnStart)
         {
-            isPlaying = false; // Önce durdur
+            isPlaying = false; 
             StartCoroutine(DelayedStart());
         }
         else
@@ -78,27 +76,25 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
 
     private IEnumerator DelayedStart()
     {
-        Debug.Log($"⏳ Animasyon {startDelay} saniye sonra başlayacak...");
+        Debug.Log($"Animasyon {startDelay} saniye sonra başlayacak...");
         yield return new WaitForSeconds(startDelay);
         isPlaying = true;
-        Debug.Log("▶️ Animasyon başladı!");
+        Debug.Log("Animasyon başladı!");
     }
 
     private void CreateDefaultPoints()
     {
-        // Start point
         GameObject startObj = new GameObject("StartPoint");
         startObj.transform.SetParent(transform);
         startObj.transform.localPosition = Vector3.zero;
         startPoint = startObj.transform;
 
-        // End point
         GameObject endObj = new GameObject("EndPoint");
         endObj.transform.SetParent(transform);
         endObj.transform.localPosition = moveDirection.normalized * (numberOfSteps * stepSpacing);
         endPoint = endObj.transform;
 
-        Debug.Log($"✅ Otomatik start/end point oluşturuldu. Mesafe: {Vector3.Distance(startPoint.position, endPoint.position)}");
+        Debug.Log($"Otomatik start/end point oluşturuldu. Mesafe: {Vector3.Distance(startPoint.position, endPoint.position)}");
     }
 
     private void CreateSteps()
@@ -113,7 +109,7 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
             steps.Add(step);
         }
 
-        Debug.Log($"✅ {numberOfSteps} basamak oluşturuldu.");
+        Debug.Log($"{numberOfSteps} basamak oluşturuldu.");
     }
 
     private void Update()
@@ -128,23 +124,16 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
             GameObject step = steps[i];
             if (step == null) continue;
 
-            // Basamağı hareket ettir
             step.transform.position += direction * moveAmount;
 
-            // Loop kontrolü
             if (loopSteps)
             {
-                // Daha hızlı mesafe kontrolü (Vector3.Distance yerine sqrMagnitude)
                 float sqrDistanceFromStart = (step.transform.position - startPoint.position).sqrMagnitude;
                 float sqrTotalDistance = totalDistance * totalDistance;
                 
-                // Bitiş noktasına ulaştıysa başa döndür
                 if (sqrDistanceFromStart >= sqrTotalDistance)
                 {
                     step.transform.position = startPoint.position;
-                    
-                    // Debug (isteğe bağlı)
-                    // Debug.Log($"🔄 Basamak {i} başa döndü");
                 }
             }
         }
@@ -194,7 +183,7 @@ public class EscalatorPhysicalAnimator : MonoBehaviour
             }
         }
         steps.Clear();
-        Debug.Log("🗑️ Tüm basamaklar temizlendi.");
+        Debug.Log("Tüm basamaklar temizlendi.");
     }
 
     [ContextMenu("Recreate Steps")]

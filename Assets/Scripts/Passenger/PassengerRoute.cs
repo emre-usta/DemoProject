@@ -1,9 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// Defines a route/path for passengers to follow after delivering luggage
-/// </summary>
+
 public class PassengerRoute : MonoBehaviour
 {
     [Header("Route Settings")]
@@ -28,7 +26,6 @@ public class PassengerRoute : MonoBehaviour
         return loopRoute;
     }
 
-    // Draw route in editor for visualization
     private void OnDrawGizmos()
     {
         if (waypoints == null || waypoints.Count < 2) return;

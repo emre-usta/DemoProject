@@ -20,7 +20,6 @@ public class UnlockAnimation : MonoBehaviour
         originalScale = transform.localScale;
         renderers = GetComponentsInChildren<Renderer>();
         
-        // Store original materials and create light-up versions
         if (useLightUpEffect && renderers.Length > 0)
         {
             originalMaterials = new Material[renderers.Length];
@@ -43,10 +42,8 @@ public class UnlockAnimation : MonoBehaviour
 
     private IEnumerator AnimateUnlock()
     {
-        // Start at scale 0
         transform.localScale = Vector3.zero;
         
-        // Apply light-up materials if enabled
         if (useLightUpEffect && renderers.Length > 0)
         {
             for (int i = 0; i < renderers.Length; i++)
@@ -66,10 +63,8 @@ public class UnlockAnimation : MonoBehaviour
             float t = elapsed / animationDuration;
             float curveValue = scaleCurve.Evaluate(t);
             
-            // Animate scale
             transform.localScale = originalScale * curveValue;
             
-            // Fade out light-up effect as animation progresses
             if (useLightUpEffect && renderers.Length > 0)
             {
                 float fadeOut = 1f - t; // Fade from full brightness to normal
@@ -87,10 +82,8 @@ public class UnlockAnimation : MonoBehaviour
             yield return null;
         }
 
-        // Ensure final scale is correct
         transform.localScale = originalScale;
         
-        // Restore original materials
         if (useLightUpEffect && renderers.Length > 0)
         {
             for (int i = 0; i < renderers.Length; i++)

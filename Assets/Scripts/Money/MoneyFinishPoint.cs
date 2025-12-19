@@ -2,9 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-/// <summary>
-/// Trigger zone at MoneyFinishPoint that collects money pickups when player enters
-/// </summary>
+
 public class MoneyFinishPoint : MonoBehaviour
 {
     public static MoneyFinishPoint Instance { get; private set; }
@@ -14,7 +12,6 @@ public class MoneyFinishPoint : MonoBehaviour
     [SerializeField] private float collectionCheckInterval = 0.2f;
     [SerializeField] private float collectionDelay = 0.1f;
 
-    // ============= YENİ EKLENEN BÖLÜM =============
     [Header("Game Flow Integration")]
     [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
     public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.MoneyCollect;
@@ -23,7 +20,6 @@ public class MoneyFinishPoint : MonoBehaviour
     public bool showDebugLogs = true;
 
     private bool isStepCompleted = false;
-    // =============================================
 
     private List<MoneyPickup> moneyPickups = new List<MoneyPickup>();
     private bool isPlayerInZone = false;
@@ -59,7 +55,6 @@ public class MoneyFinishPoint : MonoBehaviour
     {
         if (other.CompareTag(playerTag))
         {
-            // ============= STEP KONTROLÜ =============
             if (GameFlowManager.Instance != null)
             {
                 if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
@@ -68,10 +63,9 @@ public class MoneyFinishPoint : MonoBehaviour
                     {
                         Debug.Log($"⏸️ MoneyCollect step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
                     }
-                    return; // Bu step aktif değilse işlem yapma
+                    return; 
                 }
             }
-            // ========================================
 
             isPlayerInZone = true;
             
@@ -82,7 +76,6 @@ public class MoneyFinishPoint : MonoBehaviour
             
             CheckAndCollectMoney();
 
-            // ============= STEP'İ TAMAMLA (SADECE BİR KEZ) =============
             if (!isStepCompleted)
             {
                 isStepCompleted = true;
@@ -101,7 +94,6 @@ public class MoneyFinishPoint : MonoBehaviour
                     Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
                 }
             }
-            // =======================================================
         }
     }
 
@@ -120,10 +112,7 @@ public class MoneyFinishPoint : MonoBehaviour
             isPlayerInZone = true;
         }
     }
-
-    /// <summary>
-    /// Register a money pickup that has reached the finish point
-    /// </summary>
+    
     public void RegisterMoneyPickup(MoneyPickup moneyPickup)
     {
         if (moneyPickup != null && !moneyPickups.Contains(moneyPickup))
@@ -136,10 +125,7 @@ public class MoneyFinishPoint : MonoBehaviour
             }
         }
     }
-
-    /// <summary>
-    /// Check for money pickups and collect them if player is in zone
-    /// </summary>
+    
     private void CheckAndCollectMoney()
     {
         if (isCollecting) return;
@@ -201,10 +187,7 @@ public class MoneyFinishPoint : MonoBehaviour
             Debug.Log($"MoneyFinishPoint: Finished collecting money. Remaining: {moneyPickups.Count}");
         }
     }
-
-    /// <summary>
-    /// Remove money pickup from list (called when money is destroyed)
-    /// </summary>
+    
     public void UnregisterMoneyPickup(MoneyPickup moneyPickup)
     {
         if (moneyPickups.Contains(moneyPickup))

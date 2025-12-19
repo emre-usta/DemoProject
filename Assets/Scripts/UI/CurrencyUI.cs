@@ -5,7 +5,7 @@ using TMPro;
 public class CurrencyUI : MonoBehaviour
 {
     [Header("UI Reference")]
-    [SerializeField] private TextMeshProUGUI currencyTextMesh; // TextMeshPro component
+    [SerializeField] private TextMeshProUGUI currencyTextMesh; 
     
     [Header("Display Settings")]
     [SerializeField] private string currencyPrefix = "Currency: ";
@@ -13,7 +13,6 @@ public class CurrencyUI : MonoBehaviour
 
     private void Awake()
     {
-        // Auto-find Text or TextMeshPro component if not assigned and it's on the same GameObject
         if (currencyTextMesh == null)
         {
             currencyTextMesh = GetComponent<TextMeshProUGUI>();
@@ -46,11 +45,9 @@ public class CurrencyUI : MonoBehaviour
     {
         string displayText = currencyPrefix + currency + currencySuffix;
 
-        // Support both TextMeshPro and legacy Text
         if (currencyTextMesh != null)
         {
             currencyTextMesh.text = displayText;
         }
     }
 }
-

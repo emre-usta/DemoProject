@@ -4,7 +4,6 @@ public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
 
-    // Simple directional input for movement, to be set by UI joystick or by editor for testing
     public Vector2 MovementInput { get; private set; }
 
     private void Awake()
@@ -18,13 +17,11 @@ public class InputManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // Call this from your UI joystick script
     public void SetMovementInput(Vector2 input)
     {
         MovementInput = input;
     }
 
-    // Optional: Keyboard support for editor/debugging
     private void Update()
     {
 #if UNITY_EDITOR

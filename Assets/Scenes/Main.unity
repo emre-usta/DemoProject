@@ -639,6 +639,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Banks1
       objectReference: {fileID: 0}
+    - target: {fileID: -3542131437519591945, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_Name
       value: Devices (2)
@@ -877,7 +881,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -6243159647014881942, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4864437549208208005, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -906,6 +910,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_Name
       value: UpperFloorDevices
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3738321681080746402, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -945,7 +953,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7597131605517084367, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -986,7 +994,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &140230337
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1269,7 +1277,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 1, z: 2}
+  m_Size: {x: 1.5, y: 1, z: 1.5}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &225252606
 Transform:
@@ -1280,7 +1288,7 @@ Transform:
   m_GameObject: {fileID: 225252604}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.89, y: -1.91, z: -12.11}
+  m_LocalPosition: {x: 7.33, y: -1.91, z: -12.11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1369,7 +1377,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: fea58874ef217473f87cd7998a487b2e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.39
+      value: 0.9
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fea58874ef217473f87cd7998a487b2e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1377,7 +1385,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fea58874ef217473f87cd7998a487b2e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.82
+      value: 0.08
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fea58874ef217473f87cd7998a487b2e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1519,7 +1527,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &304405671
 Transform:
   m_ObjectHideFlags: 0
@@ -1809,7 +1817,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3581,7 +3589,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4682327756414089190, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -3621,7 +3629,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stepPrefab: {fileID: 2407368206353747209, guid: 5c9cde6da6cb84a139e18463d5091644, type: 3}
-  numberOfSteps: 30
+  numberOfSteps: 31
   stepSpacing: 0.3
   moveSpeed: 0.5
   moveDirection: {x: 0, y: -1, z: 0}
@@ -4051,7 +4059,7 @@ Transform:
   m_GameObject: {fileID: 958658318}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.74, y: 3.63, z: -12.03}
+  m_LocalPosition: {x: 0.5, y: 3.63, z: -12.03}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4287,7 +4295,7 @@ Transform:
   m_GameObject: {fileID: 1018821699}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.73, y: 3.63, z: -14.5}
+  m_LocalPosition: {x: 0.5, y: 3.63, z: -14.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4318,7 +4326,7 @@ Transform:
   m_GameObject: {fileID: 1047514018}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.78, y: 3.2, z: 1.15}
+  m_LocalPosition: {x: -14.78, y: 3.53, z: 1.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4532,6 +4540,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Truck
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7319804146398690090, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.97
@@ -4566,7 +4578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7805834672328098937, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -4857,7 +4869,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 872538034757721800, guid: d21bc8b52b6f942bb95769c020be0055, type: 3}
       propertyPath: currency
-      value: 100
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 872538034757721800, guid: d21bc8b52b6f942bb95769c020be0055, type: 3}
       propertyPath: areaUnlockZone
@@ -5451,7 +5463,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 92a9cd694caac43d7b2e5bf98468663d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -5515,7 +5527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stepPrefab: {fileID: 2407368206353747209, guid: 5c9cde6da6cb84a139e18463d5091644, type: 3}
-  numberOfSteps: 30
+  numberOfSteps: 31
   stepSpacing: 0.3
   moveSpeed: 0.5
   moveDirection: {x: 0, y: 1, z: 0}
@@ -5769,7 +5781,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 05233ba0966d741939d558a7c94a96c2, type: 2}
     - target: {fileID: -6243159647014881942, guid: 2858e1c5dee464725b8889861a084c3a, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -6243159647014881942, guid: 2858e1c5dee464725b8889861a084c3a, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -5785,7 +5797,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2191750151954457832, guid: 2858e1c5dee464725b8889861a084c3a, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2229032678205019293, guid: 2858e1c5dee464725b8889861a084c3a, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -5980,7 +5992,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 863489915}
-  playerOffset: {x: 12, y: 18, z: -13.2}
+  playerOffset: {x: 12, y: 16, z: -10.2}
   playerRotation: {x: 36.7, y: -48, z: 0}
   smoothSpeed: 5
   paintingOffset: {x: 0, y: 0, z: 0}
@@ -6422,7 +6434,7 @@ Transform:
   m_GameObject: {fileID: 1765770137}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.5, y: 0.35, z: 1.1}
+  m_LocalPosition: {x: -11.5, y: 0.66, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6936,7 +6948,7 @@ Transform:
   m_GameObject: {fileID: 1943084511}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -18.94, y: 6.74, z: 1.15}
+  m_LocalPosition: {x: -18.94, y: 6.92, z: 1.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6981,6 +6993,7 @@ MonoBehaviour:
   plane: {fileID: 898256849}
   xRayZone: {fileID: 140230336}
   banks: {fileID: 304405670}
+  paintZone: {fileID: 1423013799}
   cost: 50
   waitTime: 2
   animationDuration: 0.5
@@ -7570,7 +7583,6 @@ MonoBehaviour:
   passengerSpawnPointFront: {fileID: 38589772}
   passengerSpawnPointBack: {fileID: 261474294}
   passengerCount: 5
-  followDistance: 2
   luggageDeliveryPoint: {fileID: 205657752}
   playerLuggageStackPoint: {fileID: 2085603415}
   timeBetweenDeliveries: 0.5
@@ -7981,6 +7993,10 @@ PrefabInstance:
     - target: {fileID: 4678755213841543149, guid: 5a049f5e5f5e443c4bbaf2e0bd5b27b9, type: 3}
       propertyPath: m_Name
       value: MoneyFinishPoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 4678755213841543149, guid: 5a049f5e5f5e443c4bbaf2e0bd5b27b9, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

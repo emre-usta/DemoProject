@@ -2,22 +2,20 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-/// <summary>
-/// Manages the x-ray machine: handles suitcase placement and sliding animation
-/// </summary>
+
 public class XRayMachine : MonoBehaviour
 {
     [Header("X-Ray Machine Settings")]
-    [SerializeField] private Transform entryPoint; // Where player places suitcases
-    [SerializeField] private Transform exitPoint;  // Where suitcases exit
-    [SerializeField] private float slideDuration = 2f; // Time for suitcase to slide through
+    [SerializeField] private Transform entryPoint; 
+    [SerializeField] private Transform exitPoint;  
+    [SerializeField] private float slideDuration = 2f; 
     [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     
     [Header("Queue Settings")]
-    [SerializeField] private float timeBetweenPlacements = 0.5f; // Delay between placing each suitcase
+    [SerializeField] private float timeBetweenPlacements = 0.5f; 
     
     [Header("Lever Connection")]
-    [SerializeField] private LeverController leverController; // Reference to lever that receives suitcases
+    [SerializeField] private LeverController leverController; 
     
     private Queue<GameObject> suitcaseQueue = new Queue<GameObject>();
     private bool isProcessing = false;
@@ -26,17 +24,13 @@ public class XRayMachine : MonoBehaviour
 
     private void Start()
     {
-        // Find player's luggage stack
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
             playerLuggageStack = player.GetComponent<PlayerLuggageStack>();
         }
     }
-
-    /// <summary>
-    /// Called when player enters the trigger zone
-    /// </summary>
+    
     public void OnPlayerEnter()
     {
         if (playerLuggageStack == null || playerInZone) return;
@@ -45,9 +39,7 @@ public class XRayMachine : MonoBehaviour
         StartCoroutine(ProcessSuitcases());
     }
 
-    /// <summary>
-    /// Called when player exits the trigger zone
-    /// </summary>
+  
     public void OnPlayerExit()
     {
         playerInZone = false;
@@ -113,10 +105,10 @@ public class XRayMachine : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            float curveValue = Mathf.Sin(t * Mathf.PI); // Arc curve
+            float curveValue = Mathf.Sin(t * Mathf.PI); 
 
             Vector3 currentPos = Vector3.Lerp(startPos, endPos, t);
-            currentPos.y += curveValue * 1.5f; // Arc height
+            currentPos.y += curveValue * 1.5f; 
 
             suitcase.transform.position = currentPos;
             suitcase.transform.Rotate(Vector3.up, 180f * Time.deltaTime);
@@ -124,7 +116,6 @@ public class XRayMachine : MonoBehaviour
             yield return null;
         }
 
-        // Ensure final position 
         suitcase.transform.position = endPos;
         suitcase.transform.rotation = entryPoint.rotation * Quaternion.Euler(0f, 90f, 90f);
 
@@ -152,7 +143,6 @@ public class XRayMachine : MonoBehaviour
         // Ensure final position
         suitcase.transform.position = endPos;
 
-        // Send suitcase to lever for further processing
         if (leverController != null)
         {
             leverController.ReceiveSuitcase(suitcase);

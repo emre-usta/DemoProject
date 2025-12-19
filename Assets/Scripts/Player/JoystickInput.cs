@@ -55,7 +55,6 @@ public class JoystickInput : MonoBehaviour, IPointerDownHandler, IDragHandler, I
 
         Vector2 norm = pointerLocalPos / movementRange;
 
-        // 🔥 Hassasiyet artırma
         float magnitude = norm.magnitude;
         magnitude = Mathf.Pow(magnitude, sensitivityExponent);
 

@@ -1,14 +1,13 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-// ... existing code ...
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     private Rigidbody rb;
     private Vector3 moveDirection;
 
-    private Animator animator; // Add this line
+    private Animator animator; 
     
     private bool movementEnabled = true;
     private bool forceIdle = false;
@@ -16,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>(); // Add this line
+        animator = GetComponent<Animator>();
     }
     private void FixedUpdate()
     {
@@ -26,21 +25,16 @@ public class PlayerController : MonoBehaviour
             return; 
         }
         
-        // Add this line
-        // 🔒 Painting modundayken player tamamen kilitli
         if (GameStateManager.Instance != null &&
             GameStateManager.Instance.IsPaintingMode)
         {
-            // Hareketi sıfırla
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
-            // Animasyonu idle'a çek
             animator.SetFloat("Speed", 0f);
             return;
         }
 
-        // ---- NORMAL HAREKET KODU ----
         Vector2 input = InputManager.Instance.MovementInput;
 
         if (input.sqrMagnitude > 0.0025f)
@@ -82,4 +76,3 @@ public class PlayerController : MonoBehaviour
             animator.SetFloat("Speed", 0f);
     }
 }
-// ... existing code ...

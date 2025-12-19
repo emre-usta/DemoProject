@@ -13,7 +13,6 @@ public class PlayerEscalatorTrigger : MonoBehaviour
     [Header("Tags")]
     [SerializeField] private string playerTag = "Player";
 
-    // ============= YENİ EKLENEN BÖLÜM =============
     [Header("Game Flow Integration")]
     [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
     public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.EscalatorBottom;
@@ -22,7 +21,6 @@ public class PlayerEscalatorTrigger : MonoBehaviour
     public bool showDebugLogs = true;
 
     private bool isStepCompleted = false;
-    // =============================================
     
     private bool isMoving = false;
     
@@ -31,19 +29,17 @@ public class PlayerEscalatorTrigger : MonoBehaviour
         if (isMoving) return;
         if (!other.CompareTag(playerTag)) return;
 
-        // ============= STEP KONTROLÜ =============
         if (GameFlowManager.Instance != null)
         {
             if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
             {
                 if (showDebugLogs)
                 {
-                    Debug.Log($"⏸️ Escalator step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                    Debug.Log($"⏸Escalator step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
                 }
-                return; // Bu step aktif değilse işlem yapma
+                return; 
             }
         }
-        // ========================================
 
         if (targetTopPoint == null)
         {
@@ -60,7 +56,7 @@ public class PlayerEscalatorTrigger : MonoBehaviour
 
         if (showDebugLogs)
         {
-            Debug.Log("✅ Player entered escalator trigger. Starting move up sequence.");
+            Debug.Log("Player entered escalator trigger. Starting move up sequence.");
         }
         
         StartCoroutine(MovePlayerUp(other.transform, pc));
@@ -85,13 +81,12 @@ public class PlayerEscalatorTrigger : MonoBehaviour
             yield return null;
         }
         
-        // 🔥 KRİTİK SATIRLAR
         player.position = endPos;
         if (rb != null)
         {
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.position = endPos;   // ⭐ Rigidbody'yi senkronla
+            rb.position = endPos;   
         }
         
         playerControl.ForceIdle(false);
@@ -100,29 +95,26 @@ public class PlayerEscalatorTrigger : MonoBehaviour
 
         if (showDebugLogs)
         {
-            Debug.Log("🎉 Player reached top of escalator!");
+            Debug.Log("Player reached top of escalator!");
         }
 
-        // ============= STEP'İ TAMAMLA (SADECE BİR KEZ) =============
         if (!isStepCompleted)
         {
             isStepCompleted = true;
 
-            // GameFlowManager'a step'in tamamlandığını bildir
             if (GameFlowManager.Instance != null)
             {
                 if (showDebugLogs)
                 {
-                    Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+                    Debug.Log($"GameFlow step tamamlandı: {assignedStep}");
                 }
 
                 GameFlowManager.Instance.CompleteCurrentStep();
             }
             else
             {
-                Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+                Debug.LogError("GameFlowManager.Instance bulunamadı!");
             }
         }
-        // =======================================================
     }
 }

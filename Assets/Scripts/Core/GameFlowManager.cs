@@ -75,7 +75,6 @@ public class GameFlowManager : MonoBehaviour
                 flowItems[i].triggerCollider.isTrigger = true;
             }
 
-            // Waiting Marks kontrolü
             if (flowItems[i].waitingMarks == null)
             {
                 if (showDebugLogs)
@@ -92,14 +91,11 @@ public class GameFlowManager : MonoBehaviour
         {
             bool shouldBeActive = (i == currentStepIndex);
             
-            // Trigger collider'ı aktif/pasif et
             if (flowItems[i].triggerCollider != null)
             {
                 flowItems[i].triggerCollider.enabled = shouldBeActive;
             }
 
-            // ============= YENİ: WAITING MARKS KONTROLÜ =============
-            // Waiting Marks'ı aktif/pasif et
             if (flowItems[i].waitingMarks != null)
             {
                 flowItems[i].waitingMarks.SetActive(shouldBeActive);
@@ -110,7 +106,6 @@ public class GameFlowManager : MonoBehaviour
                     Debug.Log($"  └─ Waiting Marks: {markStatus}");
                 }
             }
-            // =======================================================
             
             if (showDebugLogs)
             {
@@ -124,7 +119,7 @@ public class GameFlowManager : MonoBehaviour
     {
         if (currentStepIndex >= flowItems.Count)
         {
-            Debug.LogWarning("⚠️ Zaten son step'tesiniz!");
+            Debug.LogWarning("Zaten son step'tesiniz!");
             return;
         }
 
@@ -132,21 +127,21 @@ public class GameFlowManager : MonoBehaviour
         
         if (showDebugLogs)
         {
-            Debug.Log($"✔️ Step tamamlandı: {flowItems[currentStepIndex].step} (Index: {currentStepIndex})");
+            Debug.Log($"Step tamamlandı: {flowItems[currentStepIndex].step} (Index: {currentStepIndex})");
         }
 
         currentStepIndex++;
 
         if (currentStepIndex >= flowItems.Count)
         {
-            Debug.Log("🎉 GAME FLOW TAMAMLANDI!");
+            Debug.Log("GAME FLOW TAMAMLANDI!");
             OnGameFlowCompleted();
             return;
         }
 
         if (showDebugLogs)
         {
-            Debug.Log($"➡️ Yeni step aktif: {GetCurrentStep()} (Index: {currentStepIndex})");
+            Debug.Log($"Yeni step aktif: {GetCurrentStep()} (Index: {currentStepIndex})");
         }
 
         UpdateTriggers();
@@ -180,8 +175,7 @@ public class GameFlowManager : MonoBehaviour
 
     private void OnGameFlowCompleted()
     {
-        // Oyun tamamlandığında yapılacak işlemler
-        // Tüm Waiting Marks'ları gizle
+
         foreach (var item in flowItems)
         {
             if (item.waitingMarks != null)
@@ -192,11 +186,10 @@ public class GameFlowManager : MonoBehaviour
 
         if (showDebugLogs)
         {
-            Debug.Log("🎊 Tüm yön göstergeleri gizlendi!");
+            Debug.Log("Tüm yön göstergeleri gizlendi!");
         }
     }
 
-    // Test amaçlı (Inspector'dan çağırılabilir)
     [ContextMenu("Force Next Step")]
     public void ForceNextStep()
     {
@@ -212,7 +205,7 @@ public class GameFlowManager : MonoBehaviour
             item.isCompleted = false;
         }
         UpdateTriggers();
-        Debug.Log("🔄 Flow sıfırlandı!");
+        Debug.Log("Flow sıfırlandı!");
     }
 
     [ContextMenu("Hide All Waiting Marks")]
@@ -225,7 +218,7 @@ public class GameFlowManager : MonoBehaviour
                 item.waitingMarks.SetActive(false);
             }
         }
-        Debug.Log("👻 Tüm Waiting Marks gizlendi!");
+        Debug.Log("Tüm Waiting Marks gizlendi!");
     }
 
     [ContextMenu("Show All Waiting Marks")]
@@ -238,6 +231,6 @@ public class GameFlowManager : MonoBehaviour
                 item.waitingMarks.SetActive(true);
             }
         }
-        Debug.Log("👁️ Tüm Waiting Marks gösterildi!");
+        Debug.Log("Tüm Waiting Marks gösterildi!");
     }
 }

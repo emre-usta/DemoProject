@@ -1278,7 +1278,7 @@ MonoBehaviour:
   escalatorStartWaypointIndex: 3
   escalatorEndWaypointIndex: 5
   escalatorMoveDuration: 2
-  escalatorInclineHeight: 1.5
+  escalatorInclineHeight: 2
   escalatorMoveCurve:
     serializedVersion: 2
     m_Curve:

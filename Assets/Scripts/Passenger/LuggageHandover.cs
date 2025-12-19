@@ -1,14 +1,11 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Handles the curved/domed animation for handing over luggage from passenger to player
-/// </summary>
 public class LuggageHandover : MonoBehaviour
 {
     [Header("Animation Settings")]
     [SerializeField] private float handoverDuration = 1f;
-    [SerializeField] private float arcHeight = 2f; // Height of the arc
+    [SerializeField] private float arcHeight = 2f; 
     [SerializeField] private AnimationCurve arcCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     private GameObject luggageObject;
@@ -26,8 +23,7 @@ public class LuggageHandover : MonoBehaviour
         passengerTransform = passenger;
         playerTransform = player;
         startPosition = luggage.transform.position;
-        endPosition = player.position + Vector3.up * 1.5f; // Position above player's hands
-
+        endPosition = player.position + Vector3.up * 1.5f; 
         StartCoroutine(AnimateHandover(onComplete));
     }
 
@@ -42,26 +38,21 @@ public class LuggageHandover : MonoBehaviour
             float t = elapsed / handoverDuration;
             float curveValue = arcCurve.Evaluate(t);
 
-            // Calculate position along curved path
             Vector3 currentPos = Vector3.Lerp(startPosition, endPosition, t);
             
-            // Add arc height (domed/curved path)
             float arcOffset = Mathf.Sin(t * Mathf.PI) * arcHeight;
             currentPos.y += arcOffset;
 
-            // Update luggage position
             if (luggageObject != null)
             {
                 luggageObject.transform.position = currentPos;
                 
-                // Optional: Rotate luggage during flight for visual effect
                 luggageObject.transform.Rotate(Vector3.up, 180f * Time.deltaTime);
             }
 
             yield return null;
         }
 
-        // Ensure final position
         if (luggageObject != null)
         {
             luggageObject.transform.position = endPosition;

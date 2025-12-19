@@ -3,19 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
 
-/// <summary>
-/// Controls individual passenger behavior: movement, luggage delivery, route following, escalator, and queue
-/// </summary>
+
 public class PassengerController : MonoBehaviour
 {
     public enum PassengerState
     {
-        WaitingInQueue,          // Initial state, waiting in spawn queue
-        MovingToDeliveryPoint,   // Moving to luggage delivery point
-        DeliveringLuggage,       // Handing over luggage to player
-        FollowingRoute,          // Following the 13-waypoint route
-        InQueue,                 // In upper floor queue (waypoints 7-11)
-        Finished                 // Route completed
+        WaitingInQueue,          
+        MovingToDeliveryPoint,   
+        DeliveringLuggage,       
+        FollowingRoute,          
+        InQueue,                 
+        Finished                 
     }
 
     public PassengerState CurrentState { get; private set; }
@@ -29,8 +27,8 @@ public class PassengerController : MonoBehaviour
     [SerializeField] private float waypointReachDistance = 0.5f;
 
     [Header("Escalator Settings")]
-    [SerializeField] private int escalatorStartWaypointIndex = 3; // Waypoint where escalator starts
-    [SerializeField] private int escalatorEndWaypointIndex = 5;   // Waypoint where escalator ends
+    [SerializeField] private int escalatorStartWaypointIndex = 3; 
+    [SerializeField] private int escalatorEndWaypointIndex = 5;   
     [SerializeField] private float escalatorMoveDuration = 2f;
     [SerializeField] private float escalatorInclineHeight = 1.5f;
     [SerializeField] private AnimationCurve escalatorMoveCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
@@ -46,7 +44,7 @@ public class PassengerController : MonoBehaviour
     [SerializeField] private GameObject moneyPickupPrefab;
     [SerializeField] private Transform moneyStartPoint;
     [SerializeField] private Transform moneyFinishPoint;
-    private bool hasSpawnedMoney = false; // Track if money has been spawned for this passenger
+    private bool hasSpawnedMoney = false; 
     // Components
     private NavMeshAgent agent;
     private Animator animator;
@@ -137,6 +135,8 @@ public class PassengerController : MonoBehaviour
         agent.updateRotation = true;
         agent.updatePosition = true;
         agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+
+        agent.autoRepath = false;
     }
 
     private void Update()
@@ -171,7 +171,6 @@ public class PassengerController : MonoBehaviour
 
         if (hasFollowTarget)
         {
-            // ✅ burada her frame set etmek yerine sadece ihtiyaç olduğunda set edelim
             if ((followTargetPosition - currentDestination).sqrMagnitude > 0.1f * 0.1f)
             {
                 currentDestination = followTargetPosition;
@@ -218,13 +217,11 @@ public class PassengerController : MonoBehaviour
     {
         if (agent == null || !agent.isOnNavMesh) return;
 
-        // If moving on escalator, don't process normal route following
         if (isMovingOnEscalator) return;
 
         // If in queue, queue manager handles movement
         if (isInQueue)
         {
-            // Check if reached current queue waypoint - stop agent to show idle animation
             if (currentWaypointIndex >= queueStartWaypointIndex && currentWaypointIndex <= queueEndWaypointIndex)
             {
                 if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + waypointReachDistance)
@@ -279,15 +276,19 @@ public class PassengerController : MonoBehaviour
             hasReachedCurrentWaypoint = true;
             int reachedWaypointIndex = currentWaypointIndex;
 
-            // Special handling for escalator: when reaching waypoint 3, move diagonally to waypoint 5
             if (reachedWaypointIndex == escalatorStartWaypointIndex && !isMovingOnEscalator && !isInQueue)
             {
                 if (routeWaypoints.Count > escalatorEndWaypointIndex)
                 {
-                    // escalator'a girince normal route takip tamamen dursun
+                    if (agent != null)
+                    {
+                        agent.isStopped = true;
+                        agent.ResetPath();
+                    }
+
+                    // Escalator flag'i aç
                     isMovingOnEscalator = true;
 
-                    // Kritik: 3-4-5'i “tamamlanmış” say, bir sonraki hedefi şimdiden hazırla
                     currentWaypointIndex = escalatorEndWaypointIndex + 1;
                     hasReachedCurrentWaypoint = false;
                     currentDestination = Vector3.zero;
@@ -295,11 +296,10 @@ public class PassengerController : MonoBehaviour
                     if (escalatorCoroutine != null) StopCoroutine(escalatorCoroutine);
                     escalatorCoroutine = StartCoroutine(MoveOnEscalatorStable());
 
-                    return;
+                    return; 
                 }
             }
 
-            // Check if reached exit waypoint (12) - eliminate passenger
             if (reachedWaypointIndex == exitWaypointIndex)
             {
                 if (passengerManager != null)
@@ -313,7 +313,6 @@ public class PassengerController : MonoBehaviour
                 return;
             }
 
-            // Check if reached queue start waypoint (7)
             if (reachedWaypointIndex == queueStartWaypointIndex && !isInQueue)
             {
                 RegisterWithQueue();
@@ -332,7 +331,6 @@ public class PassengerController : MonoBehaviour
 
         float threshold = agent.stoppingDistance + waypointReachDistance;
 
-        // 🔴 Eğer agent duruyorsa ama hedefe uzaksa → yeniden yürüt
         if (agent.isStopped && agent.remainingDistance > threshold)
         {
             agent.isStopped = false;
@@ -387,80 +385,92 @@ public class PassengerController : MonoBehaviour
     #region Escalator
 
     private IEnumerator MoveOnEscalatorStable()
-{
-    // Güvenlik
-    if (routeWaypoints.Count <= escalatorEndWaypointIndex)
     {
+        // Güvenlik kontrolü
+        if (routeWaypoints.Count <= escalatorEndWaypointIndex)
+        {
+            isMovingOnEscalator = false;
+            escalatorCoroutine = null;
+            yield break;
+        }
+
+        // 🔥 KRİTİK: Agent'ı TAMAMEN kapat
+        if (agent != null)
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.updatePosition = false; // NavMesh pozisyon güncellemesini devre dışı bırak
+            agent.updateRotation = false; // Rotasyon güncellemesini devre dışı bırak
+        }
+
+        // Animasyon parametresi
+        if (animator != null && !string.IsNullOrEmpty(escalatorAnimationParameter))
+            animator.SetBool(escalatorAnimationParameter, true);
+
+        Vector3 startPos = transform.position;
+        Vector3 endPos = routeWaypoints[escalatorEndWaypointIndex];
+        endPos = ValidateWaypointOnNavMesh(endPos);
+
+        // Yöne bak
+        Vector3 dir = (endPos - startPos);
+        dir.y = 0f;
+        if (dir.sqrMagnitude > 0.0001f)
+            transform.rotation = Quaternion.LookRotation(dir.normalized);
+
+        float elapsed = 0f;
+
+        // 🔥 Yürüyen merdiven animasyonu
+        while (elapsed < escalatorMoveDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / Mathf.Max(0.01f, escalatorMoveDuration));
+
+            float moveT = escalatorMoveCurve.Evaluate(t);
+            float inclineT = escalatorInclineCurve.Evaluate(t);
+
+            Vector3 pos = Vector3.Lerp(startPos, endPos, moveT);
+            pos.y += inclineT * escalatorInclineHeight;
+
+            transform.position = pos;
+            yield return null;
+        }
+
+        // 🔥 Final pozisyonu kesin olarak ayarla
+        transform.position = endPos;
+
+        // Animasyon parametresini kapat
+        if (animator != null && !string.IsNullOrEmpty(escalatorAnimationParameter))
+            animator.SetBool(escalatorAnimationParameter, false);
+
+        // 🔥 Agent'ı yeniden yapılandır
+        if (agent != null)
+        {
+            agent.updatePosition = true;  // Pozisyon güncellemesini aç
+            agent.updateRotation = true;  // Rotasyon güncellemesini aç
+            
+            // Waypoint 5'e warp et
+            TryWarpToNavMesh(endPos);
+            
+            agent.isStopped = false;
+            
+            // 🔥 KRİTİK: HEMEN waypoint 6'ya git
+            if (currentWaypointIndex < routeWaypoints.Count)
+            {
+                Vector3 nextWaypoint = ValidateWaypointOnNavMesh(routeWaypoints[currentWaypointIndex]);
+                
+                // Bir frame bekle ki NavMesh tam olarak hazır olsun
+                yield return null;
+                
+                currentDestination = nextWaypoint;
+                SetAgentDestination(nextWaypoint);
+                
+                Debug.Log($"{gameObject.name}: Escalator tamamlandı. Waypoint {currentWaypointIndex}'e gidiliyor.");
+            }
+        }
+
         isMovingOnEscalator = false;
         escalatorCoroutine = null;
-        yield break;
     }
-
-    // Agent'ı tamamen kapat (NavMesh hiçbir şeyi geri "düzeltmesin")
-    if (agent != null)
-    {
-        agent.isStopped = true;
-        agent.ResetPath();
-        agent.enabled = false;
-    }
-
-    // Anim param
-    if (animator != null && !string.IsNullOrEmpty(escalatorAnimationParameter))
-        animator.SetBool(escalatorAnimationParameter, true);
-
-    Vector3 startPos = transform.position;
-    Vector3 endPos = routeWaypoints[escalatorEndWaypointIndex];
-    endPos = ValidateWaypointOnNavMesh(endPos);
-
-    // Yöne bak (isteğe bağlı ama güzel durur)
-    Vector3 dir = (endPos - startPos);
-    dir.y = 0f;
-    if (dir.sqrMagnitude > 0.0001f)
-        transform.rotation = Quaternion.LookRotation(dir.normalized);
-
-    float elapsed = 0f;
-
-    while (elapsed < escalatorMoveDuration)
-    {
-        elapsed += Time.deltaTime;
-        float t = Mathf.Clamp01(elapsed / Mathf.Max(0.01f, escalatorMoveDuration));
-
-        float moveT = escalatorMoveCurve.Evaluate(t);
-        float inclineT = escalatorInclineCurve.Evaluate(t);
-
-        Vector3 pos = Vector3.Lerp(startPos, endPos, moveT);
-        pos.y += inclineT * escalatorInclineHeight;
-
-        transform.position = pos;
-        yield return null;
-    }
-
-    transform.position = endPos;
-
-    // Anim param kapat
-    if (animator != null && !string.IsNullOrEmpty(escalatorAnimationParameter))
-        animator.SetBool(escalatorAnimationParameter, false);
-
-    // Agent'ı geri aç + warp ile yukarıya kilitle
-    if (agent != null)
-    {
-        agent.enabled = true;
-        TryWarpToNavMesh(endPos);
-        agent.isStopped = false;
-    }
-
-    // Devam edilecek waypoint zaten UpdateFollowingRoute'da end+1'e hazırlanmıştı
-    isMovingOnEscalator = false;
-    escalatorCoroutine = null;
-
-    // Hemen bir sonraki hedefe yürütsün
-    if (routeWaypoints.Count > currentWaypointIndex)
-    {
-        Vector3 next = ValidateWaypointOnNavMesh(routeWaypoints[currentWaypointIndex]);
-        SetAgentDestination(next);
-        currentDestination = next;
-    }
-}
     /*private IEnumerator MoveDiagonallyOnEscalator()
     {
         isMovingOnEscalator = true;
@@ -519,23 +529,19 @@ public class PassengerController : MonoBehaviour
         if (moneyPickupPrefab == null || moneyStartPoint == null || moneyFinishPoint == null)
             return;
 
-        // Direkt spawn et
         GameObject moneyObj = Instantiate(
             moneyPickupPrefab,
             moneyStartPoint.position,
             Quaternion.identity
         );
 
-        // Prefab'da MoneyPickup VAR varsayımı
         MoneyPickup moneyPickup = moneyObj.GetComponent<MoneyPickup>();
 
-        // Hareketi başlat
         moneyPickup.StartMovement(
             moneyStartPoint.position,
             moneyFinishPoint.position
         );
 
-        // Finish point zaten sahnede referanslı olmalı
         MoneyFinishPoint.Instance.RegisterMoneyPickup(moneyPickup);
     }
 
@@ -546,7 +552,6 @@ public class PassengerController : MonoBehaviour
 
     private void RegisterWithQueue()
     {
-        // Stop escalator coroutine if running
         if (escalatorCoroutine != null)
         {
             StopCoroutine(escalatorCoroutine);
@@ -679,14 +684,10 @@ public class PassengerController : MonoBehaviour
         
         Debug.Log($"{gameObject.name}: Route set with {waypoints.Count} waypoints. Current state: {CurrentState}, Luggage handed over: {luggageHandedOver}");
         
-        // Stop any running coroutines
         StopAllCoroutines();
         
-        // CRITICAL: If luggage is handed over OR delivery is complete, start route immediately
-        // This ensures state transition happens regardless of timing
         if (luggageHandedOver || IsDeliveryComplete())
         {
-            // Luggage already handed over or delivery complete, start route immediately
             if (agent != null)
             {
                 agent.isStopped = false;
@@ -696,8 +697,6 @@ public class PassengerController : MonoBehaviour
         }
         else if (CurrentState == PassengerState.DeliveringLuggage)
         {
-            // Still delivering luggage, OnHandoverComplete will handle state change
-            // Route is now set, so when handover completes, it will start the route
             Debug.Log($"{gameObject.name}: Route set, waiting for luggage handover to complete. State will change in OnHandoverComplete.");
         }
         else if (CurrentState == PassengerState.MovingToDeliveryPoint)
@@ -721,10 +720,7 @@ public class PassengerController : MonoBehaviour
     {
         return luggageHandedOver || CurrentState == PassengerState.FollowingRoute || CurrentState == PassengerState.Finished;
     }
-
-    /// <summary>
-    /// Stop the NavMeshAgent (used by PassengerManager to keep passengers waiting)
-    /// </summary>
+    
     public void StopAgent()
     {
         if (agent != null)
@@ -806,7 +802,6 @@ public class PassengerController : MonoBehaviour
             case PassengerState.FollowingRoute:
                 if (isInQueue && currentWaypointIndex >= queueStartWaypointIndex && currentWaypointIndex <= queueEndWaypointIndex)
                 {
-                    // In queue - idle if stopped, walk if moving
                     if (agent != null && agent.isStopped)
                     {
                         currentSpeed = 0f;
@@ -871,11 +866,9 @@ public class PassengerController : MonoBehaviour
             if (!agent.isOnNavMesh) return;
         }
 
-        // ✅ ÖNCE agent’i serbest bırak
         agent.isStopped = false;
         agent.speed = moveSpeed;
 
-        // (Opsiyonel) Aynı hedefe çok yakınsa tekrar set etme
         if (agent.hasPath && Vector3.Distance(agent.destination, destination) < 0.25f)
             return;
 
