@@ -14,10 +14,10 @@ public class AreaUnlockTrigger : MonoBehaviour
     public GameObject xRayZone;
     public GameObject banks;
     public int cost = 50;
-    public float waitTime = 3f;
+    public float waitTime = 2f;
     
     [Header("Animation Settings")]
-    [SerializeField] private float animationDuration = 1f;
+    [SerializeField] private float animationDuration = 0.5f;
 
     // ============= YENİ EKLENEN BÖLÜM =============
     [Header("Game Flow Integration")]
