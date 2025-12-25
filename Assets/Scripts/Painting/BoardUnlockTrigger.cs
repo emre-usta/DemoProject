@@ -10,6 +10,15 @@ public class BoardUnlockTrigger : MonoBehaviour
     public GameObject paintingUI;
     public Transform paintingCameraPoint;
 
+    // ============= YENİ EKLENEN BÖLÜM =============
+    [Header("Game Flow Integration")]
+    [Tooltip("Bu trigger hangi GameFlow step'ine ait?")]
+    public GameFlowManager.GameFlowStep assignedStep = GameFlowManager.GameFlowStep.BoardUnlock;
+    
+    [Tooltip("Debug logları göster?")]
+    public bool showDebugLogs = true;
+    // =============================================
+
     private bool playerInZone = false;
     private bool isUnlocking = false;
     private bool isUnlocked = false;
@@ -20,6 +29,20 @@ public class BoardUnlockTrigger : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
         if (isUnlocked || isUnlocking) return;
+
+        // ============= STEP KONTROLÜ =============
+        if (GameFlowManager.Instance != null)
+        {
+            if (GameFlowManager.Instance.GetCurrentStep() != assignedStep)
+            {
+                if (showDebugLogs)
+                {
+                    Debug.Log($"⏸️ BoardUnlock step henüz aktif değil. Şu anki step: {GameFlowManager.Instance.GetCurrentStep()}");
+                }
+                return;
+            }
+        }
+        // ========================================
 
         playerInZone = true;
         StartUnlockProcess();
@@ -53,7 +76,10 @@ public class BoardUnlockTrigger : MonoBehaviour
     {
         if (GameManager.Instance.Currency < cost)
         {
-            Debug.Log("Not enough money to unlock painting board.");
+            if (showDebugLogs)
+            {
+                Debug.Log($"❌ Para yetersiz. Gereken: {cost}, Mevcut: {GameManager.Instance.Currency}");
+            }
             return;
         }
 
@@ -63,7 +89,10 @@ public class BoardUnlockTrigger : MonoBehaviour
         unlockTimer = 0f;
         isUnlocking = true;
 
-        Debug.Log("Board unlock started...");
+        if (showDebugLogs)
+        {
+            Debug.Log($"✅ Board unlock başladı. Bekleme süresi: {waitTime}s");
+        }
     }
 
     private void ResetUnlockProcess()
@@ -77,7 +106,10 @@ public class BoardUnlockTrigger : MonoBehaviour
             currencyDeducted = false;
         }
 
-        Debug.Log("Board unlock cancelled, money refunded.");
+        if (showDebugLogs)
+        {
+            Debug.Log("🔄 Board unlock iptal edildi, para iade edildi.");
+        }
     }
 
     private void CompleteUnlock()
@@ -85,15 +117,46 @@ public class BoardUnlockTrigger : MonoBehaviour
         isUnlocked = true;
         isUnlocking = false;
 
+        if (showDebugLogs)
+        {
+            Debug.Log("🎉 Board unlock tamamlandı!");
+        }
+
         EnterPaintingMode();
+
+        // ============= STEP'İ TAMAMLA =============
+        if (GameFlowManager.Instance != null)
+        {
+            if (showDebugLogs)
+            {
+                Debug.Log($"✔️ GameFlow step tamamlandı: {assignedStep}");
+            }
+
+            GameFlowManager.Instance.CompleteCurrentStep();
+        }
+        else
+        {
+            Debug.LogError("❌ GameFlowManager.Instance bulunamadı!");
+        }
+        // ========================================
 
         gameObject.SetActive(false);
     }
 
     private void EnterPaintingMode()
     {
-        GameStateManager.Instance.EnterPaintingMode();
-
-        Debug.Log("Entered Painting Mode");
+        if (GameStateManager.Instance != null)
+        {
+            GameStateManager.Instance.EnterPaintingMode();
+            
+            if (showDebugLogs)
+            {
+                Debug.Log("✅ Painting Mode'a girildi");
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ GameStateManager.Instance bulunamadı!");
+        }
     }
 }
